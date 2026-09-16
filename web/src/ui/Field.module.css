@@ -1,0 +1,73 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+  flex: 1;
+}
+.label {
+  display: block;
+}
+.hint {
+  font-size: var(--fs-11);
+  color: var(--tx3);
+  line-height: 1.45;
+}
+.error {
+  font-size: var(--fs-11);
+  color: var(--rd);
+  line-height: 1.45;
+}
+
+.control {
+  width: 100%;
+  border: 1px solid var(--line2);
+  border-radius: var(--r-2);
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--s1);
+  color: var(--tx);
+  font-size: var(--fs-13);
+  line-height: 1.4;
+  outline: none;
+  min-width: 0;
+}
+.control::placeholder {
+  color: var(--tx3);
+}
+.control:focus {
+  border-color: var(--accent);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+}
+.textarea {
+  resize: vertical;
+  min-height: 72px;
+  line-height: 1.6;
+}
+.select {
+  appearance: none;
+  padding-right: var(--sp-8);
+}
+
+/* Borderless controls for composed inputs (chat box, log entry). */
+.bare {
+  border: none;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+.bare:focus {
+  border: none;
+}
+
+@media (max-width: 759px) {
+  .control {
+    min-height: var(--touch);
+    font-size: 16px; /* prevents iOS zoom on focus */
+  }
+  .bare {
+    min-height: 0;
+  }
+}

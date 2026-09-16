@@ -1,0 +1,21 @@
+.banner {
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--oc);
+  border-radius: var(--r-3);
+  background: var(--s1);
+  padding: var(--sp-6) var(--sp-7);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-7);
+  flex-wrap: wrap;
+}
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+.summary {
+  flex: 1;
+  min-width: 220px;
+  font-size: var(--fs-13);
+}

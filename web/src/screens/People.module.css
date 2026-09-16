@@ -1,0 +1,35 @@
+.chips {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.chip {
+  font-family: var(--font-mono);
+  font-size: var(--fs-10);
+  color: var(--tx2);
+  border: 1px solid var(--line2);
+  border-radius: var(--r-pill);
+  padding: 3px 10px;
+  min-height: 24px;
+}
+.chipOn {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--cyd);
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+@media (max-width: 759px) {
+  .chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 3px;
+  }
+  .chip {
+    flex: none;
+    min-height: 32px;
+  }
+}

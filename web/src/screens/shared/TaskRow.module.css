@@ -1,0 +1,59 @@
+.row {
+  gap: var(--sp-5);
+}
+.check {
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  border: 1.5px solid var(--line2);
+  flex: none;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+}
+.check-danger {
+  border-color: var(--rd);
+}
+.check-held {
+  border-color: var(--oc);
+}
+.checked {
+  border-color: var(--gr);
+}
+.checkFill {
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+  background: transparent;
+}
+.checked .checkFill {
+  background: var(--gr);
+}
+.title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-13);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.done .title {
+  color: var(--tx3);
+  text-decoration: line-through;
+}
+.due {
+  width: 56px;
+  text-align: right;
+  flex: none;
+}
+@media (max-width: 759px) {
+  .check {
+    width: 18px;
+    height: 18px;
+  }
+  .checkFill {
+    width: 7px;
+    height: 7px;
+  }
+}

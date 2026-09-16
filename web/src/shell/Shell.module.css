@@ -1,0 +1,44 @@
+.root {
+  position: relative;
+  height: 100%;
+  display: flex;
+  background: var(--bg);
+  color: var(--tx);
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 759px) {
+  .root {
+    flex-direction: column;
+  }
+  .main {
+    flex: 1;
+    min-height: 0;
+  }
+  .content {
+    padding-bottom: var(--tab-h);
+  }
+  .withRail .content {
+    display: none;
+  }
+}

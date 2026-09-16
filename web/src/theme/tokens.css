@@ -1,0 +1,143 @@
+/* Design tokens. The single source of every colour, space, radius and type size.
+   Dark is the default; light is an override on [data-theme="light"].
+   Screens override exactly one token, --accent, via [data-screen]. */
+
+:root {
+  /* surfaces */
+  --canvas: #08090b;
+  --bg: #101317;
+  --s1: #161a1f;
+  --s2: #1c2127;
+  --s3: #232a31;
+  --line: #242a31;
+  --line2: #2f373f;
+
+  /* text */
+  --tx: #e7eaed;
+  --tx2: #98a1aa;
+  --tx3: #8f989f;
+
+  /* Enola itself */
+  --cy: #7cb8d8;
+  --cyd: #233746; /* cyan, dim surface */
+  --cyi: #0a1116; /* ink on cyan */
+
+  /* semantic — fixed app-wide, never redefined per screen */
+  --oc: #d6a250; /* Held. Nothing else, ever. */
+  --ocd: #352a17;
+  --gr: #7ba883; /* finished, settled, confirmed */
+  --grd: #1c2a20;
+  --rd: #cf7a66; /* overdue and destructive */
+  --rdd: #33201b;
+  --paper-ink: #b98f52; /* Academics accent */
+
+  --accent: var(--cy);
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.02), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-float: 0 24px 60px rgba(0, 0, 0, 0.45);
+  --scrim: rgba(0, 0, 0, 0.45);
+
+  /* type */
+  --font-ui: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-serif: Georgia, "Times New Roman", serif;
+  --fs-10: 10px;
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-17: 17px;
+  --fs-19: 19px;
+  --fs-22: 22px;
+  --fs-30: 30px;
+  --track-label: 0.13em;
+  --track-tight: -0.03em;
+  --lh-tight: 1.35;
+  --lh-body: 1.55;
+
+  /* space */
+  --sp-1: 2px;
+  --sp-2: 4px;
+  --sp-3: 6px;
+  --sp-4: 8px;
+  --sp-5: 10px;
+  --sp-6: 13px;
+  --sp-7: 16px;
+  --sp-8: 18px;
+  --sp-9: 22px;
+  --sp-10: 30px;
+
+  /* radius */
+  --r-1: 3px;
+  --r-2: 6px;
+  --r-3: 8px;
+  --r-4: 11px;
+  --r-pill: 999px;
+
+  /* layout */
+  --nav-w: 212px;
+  --rail-w: 320px;
+  --header-h: 46px;
+  --tab-h: 58px;
+  --touch: 44px;
+  --z-rail: 20;
+  --z-sheet: 25;
+  --z-palette: 30;
+  --z-toast: 35;
+  --z-splash: 40;
+}
+
+[data-theme="light"] {
+  --canvas: #dfe2e5;
+  --bg: #fbfbfc;
+  --s1: #f3f4f6;
+  --s2: #eaecef;
+  --s3: #e1e4e8;
+  --line: #e2e5e9;
+  --line2: #ccd2d8;
+  --tx: #14171a;
+  --tx2: #596269;
+  --tx3: #5f676e;
+  --cy: #2a6888;
+  --cyd: #d8e8f1;
+  --cyi: #ffffff;
+  --oc: #85600f;
+  --ocd: #f4e8cd;
+  --gr: #3e6b47;
+  --grd: #dcebe0;
+  --rd: #a3452e;
+  --rdd: #f5ddd6;
+  --paper-ink: #85600f;
+  --shadow: 0 1px 2px rgba(16, 20, 24, 0.06), 0 8px 24px rgba(16, 20, 24, 0.08);
+  --shadow-float: 0 24px 60px rgba(16, 20, 24, 0.18);
+  --scrim: rgba(16, 20, 24, 0.35);
+}
+
+/* Per-screen accent. The only token a screen may change. */
+[data-screen="academics"] {
+  --accent: var(--paper-ink);
+}
+
+/* Academics paper mode: the only full mode shift in the app. */
+[data-paper="1"] {
+  --bg: #12110e;
+  --s1: #1a1814;
+  --s2: #221f19;
+  --s3: #2a2620;
+  --line: #282420;
+  --line2: #38332b;
+  --tx: #ece6da;
+  --tx2: #a79e8d;
+  --tx3: #9b9384;
+}
+[data-theme="light"] [data-paper="1"] {
+  --bg: #f8f5ee;
+  --s1: #f1ede2;
+  --s2: #e9e4d6;
+  --s3: #e0dacb;
+  --line: #e2dbca;
+  --line2: #cfc6b1;
+  --tx: #211d16;
+  --tx2: #665e4f;
+  --tx3: #645c4d;
+}

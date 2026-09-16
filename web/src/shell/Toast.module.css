@@ -1,0 +1,23 @@
+.toast {
+  position: absolute;
+  bottom: var(--sp-8);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-toast);
+  background: var(--s3);
+  border: 1px solid var(--line2);
+  border-radius: var(--r-3);
+  padding: var(--sp-5) var(--sp-7);
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  box-shadow: var(--shadow-float);
+  animation: rise 0.2s ease;
+  max-width: calc(100% - 40px);
+  font-size: var(--fs-12);
+}
+@media (max-width: 759px) {
+  .toast {
+    bottom: calc(var(--tab-h) + var(--sp-5));
+  }
+}

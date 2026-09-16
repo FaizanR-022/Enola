@@ -1,0 +1,109 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.groupLabel {
+  padding: 9px 3px 7px;
+}
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.fact {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--s1);
+  padding: 11px var(--sp-6);
+  display: flex;
+  gap: var(--sp-6);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.forgotten {
+  background: transparent;
+}
+.forgotten .statement {
+  color: var(--tx3);
+  text-decoration: line-through;
+}
+.factMain {
+  flex: 1;
+  min-width: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.statement {
+  font-size: var(--fs-13);
+}
+.editRow {
+  display: flex;
+  gap: var(--sp-4);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.confidence {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+}
+.bar {
+  width: 44px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--s3);
+  overflow: hidden;
+  display: block;
+}
+.fill {
+  display: block;
+  height: 100%;
+  width: var(--conf, 0%);
+}
+.fill-accent {
+  background: var(--accent);
+}
+.fill-soft {
+  background: var(--tx2);
+}
+.fill-held {
+  background: var(--oc);
+}
+.pct {
+  width: 32px;
+}
+.actions {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  flex: none;
+}
+.forget {
+  font-size: var(--fs-12);
+  color: var(--tx3);
+}
+.forget:hover {
+  color: var(--rd);
+}
+.footnote {
+  border: 1px dashed var(--line2);
+  border-radius: var(--r-3);
+  padding: var(--sp-6) var(--sp-7);
+  font-size: var(--fs-12);
+  color: var(--tx3);
+  line-height: 1.55;
+  max-width: 74ch;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+@media (max-width: 759px) {
+  .confidence {
+    order: 3;
+  }
+}

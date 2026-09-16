@@ -1,0 +1,46 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+.back {
+  font-size: var(--fs-12);
+}
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-6);
+  flex-wrap: wrap;
+}
+.serifRow {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: var(--sp-7);
+  align-items: flex-end;
+}
+.title {
+  margin: 0;
+  font-size: var(--fs-22);
+  letter-spacing: var(--track-tight);
+  font-weight: 500;
+  line-height: 1.2;
+}
+.serif {
+  font-family: var(--font-serif);
+  font-size: 25px;
+  letter-spacing: -0.01em;
+  font-weight: 400;
+}
+.subtitle {
+  font-size: var(--fs-13);
+  color: var(--tx2);
+  line-height: 1.5;
+}
+.spacer {
+  flex: 1;
+}
+.actions {
+  display: flex;
+  gap: var(--sp-4);
+  align-items: center;
+  flex-wrap: wrap;
+}

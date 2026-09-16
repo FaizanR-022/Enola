@@ -1,0 +1,47 @@
+.splash {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-splash);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  animation: fadein 0.2s ease;
+  color: var(--tx);
+  padding: var(--sp-7);
+}
+.word {
+  font-size: var(--fs-30);
+  letter-spacing: -0.04em;
+  font-weight: 500;
+  margin-top: var(--sp-9);
+}
+.line {
+  font-size: var(--fs-13);
+  color: var(--tx2);
+  margin-top: var(--sp-4);
+  text-align: center;
+}
+.bar {
+  width: 180px;
+  height: 2px;
+  background: var(--line);
+  margin-top: var(--sp-10);
+  overflow: hidden;
+  border-radius: 2px;
+}
+.fill {
+  height: 100%;
+  background: var(--cy);
+  transition: width 0.3s ease;
+  width: 20%;
+}
+.stage1 {
+  width: 70%;
+}
+.label {
+  margin-top: var(--sp-6);
+  letter-spacing: 0.06em;
+}

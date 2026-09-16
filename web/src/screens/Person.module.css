@@ -1,0 +1,71 @@
+.back {
+  font-size: var(--fs-12);
+  width: max-content;
+}
+.header {
+  display: flex;
+  gap: var(--sp-7);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.identity {
+  flex: 1;
+  min-width: 180px;
+}
+.name {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.025em;
+  font-weight: 500;
+}
+.role {
+  font-size: var(--fs-13);
+  color: var(--tx2);
+  margin-top: 5px;
+}
+.tags {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.notes {
+  font-size: var(--fs-13);
+  line-height: 1.65;
+  color: var(--tx2);
+  min-height: 120px;
+}
+.addRow {
+  display: flex;
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-6);
+  border-bottom: 1px solid var(--line);
+  align-items: center;
+}
+.kind {
+  width: 110px;
+  flex: none;
+}
+.when {
+  width: 50px;
+  flex: none;
+}
+.text {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-12);
+  line-height: 1.5;
+  color: var(--tx2);
+}
+.danger {
+  display: flex;
+  justify-content: flex-end;
+}
+@media (max-width: 759px) {
+  .addRow {
+    flex-wrap: wrap;
+  }
+  .kind {
+    width: 100%;
+  }
+}

@@ -1,0 +1,24 @@
+# Local infrastructure only. The API and worker run on the host (see README).
+# Everything configurable comes from .env — copy .env.example to get started.
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: enola-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-enola}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-enola}
+      POSTGRES_DB: ${POSTGRES_DB:-enola}
+    ports:
+      # Host port is configurable because a native Postgres often already owns 5432.
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
+    volumes:
+      - enola-pgdata:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-enola} -d ${POSTGRES_DB:-enola}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  enola-pgdata:

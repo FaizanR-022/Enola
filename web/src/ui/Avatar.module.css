@@ -1,0 +1,31 @@
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--s3);
+  color: var(--tx2);
+  font-weight: 600;
+  flex: none;
+  line-height: 1;
+}
+.sm {
+  width: 22px;
+  height: 22px;
+  font-size: var(--fs-10);
+}
+.md {
+  width: 30px;
+  height: 30px;
+  font-size: var(--fs-11);
+}
+.lg {
+  width: 52px;
+  height: 52px;
+  font-size: var(--fs-17);
+}
+.enola {
+  border-radius: 5px;
+  background: var(--accent);
+  color: var(--cyi);
+  font-weight: 700;
+}

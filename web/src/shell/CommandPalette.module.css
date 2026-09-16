@@ -1,0 +1,109 @@
+.palette {
+  display: flex;
+  flex-direction: column;
+  max-height: 520px;
+  min-height: 0;
+}
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: var(--sp-6) var(--sp-7);
+  border-bottom: 1px solid var(--line);
+}
+.ring {
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid var(--tx3);
+  border-radius: 50%;
+  flex: none;
+}
+.input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--tx);
+  font-size: var(--fs-15);
+}
+.input::placeholder {
+  color: var(--tx3);
+}
+.kbd {
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  padding: 2px 5px;
+}
+.results {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-bottom: var(--sp-3);
+}
+.ask,
+.hit {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  color: var(--tx);
+}
+.ask {
+  padding: 12px var(--sp-7);
+  border-bottom: 1px solid var(--line);
+  background: var(--s1);
+  font-size: var(--fs-13);
+}
+.askMark {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: var(--accent);
+  flex: none;
+}
+.askText {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.groupLabel {
+  display: block;
+  padding: 9px var(--sp-7) 5px;
+  letter-spacing: 0.14em;
+}
+.hit {
+  padding: 8px var(--sp-7);
+  font-size: var(--fs-13);
+}
+.hitLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cursor,
+.hit:hover,
+.ask:hover {
+  background: var(--s2);
+}
+.status {
+  display: block;
+  padding: var(--sp-4) var(--sp-7);
+}
+.foot {
+  padding: 8px var(--sp-7);
+  border-top: 1px solid var(--line);
+  background: var(--s1);
+  display: flex;
+  gap: var(--sp-7);
+}
+@media (max-width: 759px) {
+  .foot {
+    display: none;
+  }
+}

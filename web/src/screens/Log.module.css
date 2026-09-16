@@ -1,0 +1,150 @@
+.composer {
+  border: 1px solid var(--line2);
+  border-radius: var(--r-3);
+  background: var(--s1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.composerTitle {
+  padding: 12px var(--sp-6) 8px;
+  font-size: var(--fs-15);
+  font-weight: 500;
+  letter-spacing: -0.012em;
+}
+.composerBody {
+  padding: 0 var(--sp-6) var(--sp-5);
+  color: var(--tx2);
+  min-height: 52px;
+  font-size: var(--fs-13);
+}
+.composerFoot {
+  border-top: 1px solid var(--line);
+  padding: 9px var(--sp-6);
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.tagRow,
+.filterRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+.filterRow {
+  padding: 9px var(--sp-6);
+  border-bottom: 1px solid var(--line);
+}
+.tag {
+  font-family: var(--font-mono);
+  font-size: var(--fs-10);
+  color: var(--tx2);
+  border: 1px solid var(--line2);
+  border-radius: var(--r-pill);
+  padding: 3px 9px;
+}
+.tagOn {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--cyd);
+}
+.searchRow {
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+.dayHead {
+  padding: 9px var(--sp-6);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+.time {
+  width: 38px;
+  flex: none;
+  padding-top: 3px;
+}
+.entryMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.entryTitle {
+  font-size: var(--fs-14);
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  line-height: 1.4;
+}
+.entryBody {
+  font-size: var(--fs-12);
+  color: var(--tx2);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.entryTags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+}
+.remove {
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  color: var(--tx3);
+  flex: none;
+  min-width: 24px;
+  min-height: 24px;
+}
+.remove:hover {
+  color: var(--rd);
+}
+.candMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.candText {
+  font-size: var(--fs-13);
+  line-height: 1.45;
+}
+.bars {
+  display: flex;
+  gap: 5px;
+  align-items: flex-end;
+  height: 54px;
+}
+.bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+}
+.barFill {
+  width: 100%;
+  height: var(--bar-h, 3px);
+  background: var(--s3);
+  border-radius: 3px;
+}
+.barToday {
+  background: var(--accent);
+}
+.barEmpty {
+  background: var(--line2);
+}
+.weekNote {
+  border-top: 1px solid var(--line);
+  padding-top: 11px;
+  font-size: var(--fs-12);
+  color: var(--tx2);
+  line-height: 1.55;
+}

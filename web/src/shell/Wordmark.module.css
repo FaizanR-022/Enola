@@ -1,0 +1,77 @@
+.mark {
+  display: inline-grid;
+  place-items: center;
+  background: var(--cy);
+  flex: none;
+}
+.held {
+  background: var(--oc);
+}
+.ring {
+  border-radius: 50%;
+  border-style: solid;
+  border-color: var(--cyi);
+  border-right-color: transparent;
+  transform: rotate(-40deg);
+}
+.held .ring {
+  border-color: #17140c;
+  border-right-color: transparent;
+}
+.pulse {
+  animation: held 1.6s ease-in-out infinite;
+}
+
+.sm {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+}
+.sm .ring {
+  width: 10px;
+  height: 10px;
+  border-width: 1.5px;
+}
+.md {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+}
+.md .ring {
+  width: 15px;
+  height: 15px;
+  border-width: 2px;
+}
+.lg {
+  width: 54px;
+  height: 54px;
+  border-radius: 13px;
+}
+.lg .ring {
+  width: 26px;
+  height: 26px;
+  border-width: 3px;
+}
+
+.lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.word {
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--tx);
+}
+.lockup-sm .word {
+  font-size: var(--fs-14);
+}
+.lockup-md .word {
+  font-size: var(--fs-19);
+  letter-spacing: -0.035em;
+}
+.lockup-lg .word {
+  font-size: var(--fs-30);
+  letter-spacing: -0.04em;
+}

@@ -1,0 +1,51 @@
+.rail {
+  width: var(--rail-w);
+  flex: none;
+  border-left: 1px solid var(--line);
+  background: var(--s1);
+  display: flex;
+  flex-direction: column;
+  animation: fadein 0.18s ease;
+  min-height: 0;
+}
+.head {
+  padding: 11px var(--sp-6);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.spacer {
+  flex: 1;
+}
+.close {
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
+  color: var(--tx3);
+  min-width: 28px;
+  min-height: 28px;
+}
+.close:hover {
+  color: var(--tx);
+}
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.note {
+  margin: 0;
+  padding: var(--sp-6) var(--sp-6) 0;
+  font-size: var(--fs-12);
+  color: var(--tx3);
+  line-height: 1.5;
+}
+
+@media (max-width: 759px) {
+  .rail {
+    width: 100%;
+    border-left: none;
+    padding-bottom: var(--tab-h);
+  }
+}

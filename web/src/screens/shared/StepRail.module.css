@@ -1,0 +1,37 @@
+.rail {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+.label {
+  letter-spacing: 0.1em;
+  margin-right: var(--sp-2);
+}
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+.stepLabel {
+  font-size: var(--fs-11);
+  color: var(--tx3);
+  white-space: nowrap;
+}
+.past {
+  color: var(--tx2);
+}
+.current-held {
+  color: var(--oc);
+}
+.current-rejected {
+  color: var(--rd);
+}
+.current-running {
+  color: var(--accent);
+}
+.joiner {
+  width: 16px;
+  height: 1px;
+  background: var(--line2);
+}

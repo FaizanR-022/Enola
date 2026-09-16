@@ -1,0 +1,62 @@
+.tabs {
+  display: none;
+}
+
+@media (max-width: 759px) {
+  .tabs {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-rail);
+    display: flex;
+    border-top: 1px solid var(--line);
+    background: var(--bg);
+    padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
+    min-height: var(--tab-h);
+  }
+}
+.tab {
+  flex: 1;
+  min-height: var(--touch);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  position: relative;
+  color: inherit;
+}
+.square {
+  border-radius: 2px;
+}
+.badge {
+  position: absolute;
+  top: 2px;
+  right: 26%;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  padding: var(--sp-5) var(--sp-6) var(--sp-8);
+}
+.cell {
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--s1);
+  padding: var(--sp-6);
+  min-height: 62px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 11px;
+  text-align: left;
+}
+.cellActive {
+  border-color: var(--accent);
+}
+.cellLabel {
+  font-size: var(--fs-13);
+}

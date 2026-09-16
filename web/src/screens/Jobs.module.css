@@ -1,0 +1,202 @@
+.paste {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--s1);
+  flex-wrap: wrap;
+}
+.pasteHint {
+  flex: 1;
+  min-width: 180px;
+  font-size: var(--fs-12);
+  color: var(--tx3);
+}
+.phoneStages {
+  display: none;
+}
+.board {
+  display: flex;
+  gap: 11px;
+  overflow-x: auto;
+  padding-bottom: var(--sp-3);
+  align-items: flex-start;
+}
+.column {
+  flex: 0 0 232px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.columnHead {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 0 3px;
+}
+.columnCount {
+  margin-left: auto;
+}
+.columnEmpty {
+  border: 1px dashed var(--line);
+  border-radius: var(--r-3);
+  padding: var(--sp-6);
+  font-size: var(--fs-11);
+  color: var(--tx3);
+}
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--s1);
+  padding: 11px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  text-align: left;
+  color: inherit;
+  width: 100%;
+}
+.card:hover {
+  border-color: var(--line2);
+  background: var(--s2);
+}
+.cardRole {
+  font-size: var(--fs-13);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+.cardCompany {
+  font-size: var(--fs-11);
+  color: var(--tx2);
+}
+.cardTags {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.cardNext {
+  margin-top: 3px;
+  white-space: normal;
+  line-height: 1.4;
+}
+.discoverySection {
+  border-top: 1px solid var(--line);
+  padding-top: var(--sp-7);
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.discoveryHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-6);
+  flex-wrap: wrap;
+}
+.discoveryTitle {
+  font-size: var(--fs-15);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.discoverySub {
+  font-size: var(--fs-12);
+  color: var(--tx2);
+}
+.discovery {
+  display: flex;
+  gap: var(--sp-7);
+  align-items: center;
+  padding: 11px var(--sp-6);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.discovery:last-child {
+  border-bottom: none;
+}
+.score {
+  width: 40px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.scoreValue {
+  font-size: var(--fs-15);
+}
+.discoveryMain {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.discoveryRole {
+  font-size: var(--fs-13);
+  letter-spacing: -0.01em;
+}
+.discoveryMeta {
+  font-size: var(--fs-11);
+  color: var(--tx2);
+}
+.discoveryReason {
+  font-size: var(--fs-11);
+  color: var(--tx3);
+  line-height: 1.45;
+}
+.discoveryActions {
+  display: flex;
+  gap: 7px;
+  flex: none;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+.formRow {
+  display: flex;
+  gap: var(--sp-5);
+}
+
+@media (max-width: 759px) {
+  .phoneStages {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    padding-bottom: 3px;
+  }
+  .stageChip {
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    padding: 5px 11px;
+    flex: none;
+    display: flex;
+    gap: 7px;
+    align-items: center;
+    font-size: var(--fs-12);
+    color: var(--tx2);
+    min-height: 32px;
+  }
+  .stageChipOn {
+    border-color: var(--accent);
+    background: var(--cyd);
+    color: var(--accent);
+  }
+  .board {
+    overflow: visible;
+    flex-direction: column;
+  }
+  .column {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+  .columnHidden {
+    display: none;
+  }
+  .formRow {
+    flex-direction: column;
+  }
+}

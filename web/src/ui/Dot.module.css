@@ -1,0 +1,68 @@
+.dot {
+  display: inline-block;
+  border-radius: 50%;
+  flex: none;
+  background: var(--tx3);
+  border: 1.5px solid transparent;
+}
+.s5 {
+  width: 5px;
+  height: 5px;
+}
+.s6 {
+  width: 6px;
+  height: 6px;
+}
+.s7 {
+  width: 7px;
+  height: 7px;
+}
+.s9 {
+  width: 9px;
+  height: 9px;
+}
+.line {
+  background: var(--line2);
+}
+.muted {
+  background: var(--tx3);
+}
+.soft {
+  background: var(--tx2);
+}
+.accent {
+  background: var(--accent);
+}
+.held {
+  background: var(--oc);
+}
+.ok {
+  background: var(--gr);
+}
+.danger {
+  background: var(--rd);
+}
+.paper {
+  background: var(--paper-ink);
+}
+.hollow {
+  background: transparent;
+}
+.hollow.line {
+  border-color: var(--line2);
+}
+.hollow.accent {
+  border-color: var(--accent);
+}
+.hollow.held {
+  border-color: var(--oc);
+}
+.hollow.ok {
+  border-color: var(--gr);
+}
+.hollow.danger {
+  border-color: var(--rd);
+}
+.pulse {
+  animation: held 1.8s ease-in-out infinite;
+}

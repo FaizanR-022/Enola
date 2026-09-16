@@ -1,0 +1,131 @@
+.balance {
+  font-family: var(--font-mono);
+  font-size: var(--fs-19);
+  letter-spacing: -0.02em;
+}
+.delta {
+  font-size: var(--fs-11);
+  color: var(--tx3);
+}
+.deltaUp {
+  color: var(--gr);
+}
+.date {
+  width: 44px;
+  flex: none;
+}
+.txMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.txTitle {
+  font-size: var(--fs-13);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.txTags {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.oweMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.oweName {
+  font-size: var(--fs-12);
+}
+.oweDetail {
+  font-size: var(--fs-11);
+  color: var(--tx3);
+}
+.bars {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  gap: 1px;
+}
+.bar {
+  width: var(--w);
+  background: var(--c);
+}
+.spendRow {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+}
+.swatch {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--c);
+  flex: none;
+}
+.spendName {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-12);
+  color: var(--tx2);
+}
+.pct {
+  width: 34px;
+  text-align: right;
+}
+.spendNote {
+  border-top: 1px solid var(--line);
+  padding-top: 11px;
+  font-size: var(--fs-11);
+  color: var(--tx3);
+  line-height: 1.5;
+}
+.sheetRow {
+  display: flex;
+  gap: 11px;
+  flex-wrap: wrap;
+}
+.sheetLabel {
+  display: block;
+  margin-bottom: 8px;
+}
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line2);
+  border-radius: var(--r-pill);
+  padding: 5px 11px 5px 6px;
+  font-size: var(--fs-12);
+  color: var(--tx2);
+}
+.chipOn {
+  border-color: var(--accent);
+  background: var(--cyd);
+  color: var(--accent);
+}
+.preview {
+  font-size: var(--fs-12);
+  color: var(--tx2);
+  line-height: 1.55;
+}
+.sheetNote {
+  flex: 1;
+  text-align: right;
+  font-size: var(--fs-11);
+  color: var(--tx3);
+  max-width: 24ch;
+  line-height: 1.4;
+}

@@ -1,0 +1,61 @@
+.heading {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-6);
+  flex-wrap: wrap;
+}
+.date {
+  margin: 0;
+  font-size: var(--fs-22);
+  letter-spacing: var(--track-tight);
+  font-weight: 500;
+}
+.headline {
+  font-size: var(--fs-13);
+  color: var(--tx2);
+}
+.brief {
+  font-size: var(--fs-13);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: var(--tx);
+}
+.time {
+  width: 46px;
+  flex: none;
+}
+.eventMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.eventTitle {
+  font-size: var(--fs-13);
+}
+.eventSub {
+  font-size: var(--fs-11);
+  color: var(--tx3);
+}
+.activityDot {
+  margin-top: 5px;
+}
+.activityText {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-12);
+  color: var(--tx2);
+  line-height: 1.45;
+}
+.dismiss {
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  color: var(--tx3);
+  flex: none;
+  min-width: 24px;
+  min-height: 24px;
+}
+.dismiss:hover {
+  color: var(--tx);
+}

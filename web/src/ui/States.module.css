@@ -1,0 +1,39 @@
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-5) 0;
+}
+.bar {
+  height: 12px;
+  border-radius: var(--r-1);
+  background: var(--s2);
+  animation: held 1.6s ease-in-out infinite;
+}
+.bar:nth-child(2) {
+  width: 82%;
+  animation-delay: 0.15s;
+}
+.bar:nth-child(3) {
+  width: 64%;
+  animation-delay: 0.3s;
+}
+.bar:nth-child(n + 4) {
+  width: 72%;
+}
+
+.error {
+  border: 1px solid var(--rdd);
+  border-left: 2px solid var(--rd);
+  border-radius: var(--r-3);
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  align-items: flex-start;
+}
+.message {
+  font-size: var(--fs-12);
+  color: var(--tx2);
+  line-height: 1.5;
+}
