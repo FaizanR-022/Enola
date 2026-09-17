@@ -9,10 +9,9 @@ import type { components, paths } from "./api-types.generated";
 export type Schemas = components["schemas"];
 export type ApiPaths = paths;
 
-const baseUrl = import.meta.env["VITE_API_BASE_URL"];
-if (typeof baseUrl !== "string" || baseUrl.length === 0) {
-  throw new Error("VITE_API_BASE_URL is not set. Copy .env.example to .env at the repo root.");
-}
+// Empty means same-origin: in dev the Vite proxy forwards /api to the API, and in
+// production the API is served behind the same host. Set it only for a split deploy.
+const baseUrl = import.meta.env["VITE_API_BASE_URL"] ?? "";
 
 export class ApiError extends Error {
   readonly status: number;

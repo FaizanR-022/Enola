@@ -1,0 +1,12 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.pytest_cache/
+var/
+web/node_modules/
+web/dist/
+web/src/lib/api-types.generated.ts.tmp
+*.log
+enola.egg-info/

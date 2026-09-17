@@ -48,13 +48,19 @@ _SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 
 
 def _origin_rejected(request: Request, allowed_origins: list[str]) -> bool:
-    """Cheap CSRF defence for cookie auth: a browser's mutating request must come from
-    one of our origins. Non-browser clients send no Origin header and are unaffected
-    because cookies are not attached automatically there."""
+    """Cheap CSRF defence for cookie auth: a browser's mutating request must be
+    same-origin (its Origin matches the Host it was sent to, which is the case through
+    the dev proxy from any device on the LAN) or come from a listed origin. Non-browser
+    clients send no Origin header and are unaffected because cookies are not attached
+    automatically there."""
     if request.method in _SAFE_METHODS:
         return False
     origin = request.headers.get("origin")
-    return origin is not None and origin not in allowed_origins
+    if origin is None or origin in allowed_origins:
+        return False
+    host = request.headers.get("host", "")
+    origin_host = origin.split("://", 1)[-1]
+    return origin_host.lower() != host.lower()
 
 
 def create_app() -> FastAPI:
