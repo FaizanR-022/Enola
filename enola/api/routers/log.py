@@ -5,7 +5,13 @@ from fastapi import APIRouter
 from enola.api.crud import crud_router
 from enola.api.deps import CurrentSession, DbSession
 from enola.core.schemas.infra import ActivityListParams, ActivityRead
-from enola.core.schemas.journal import LogCandidate, LogEntryCreate, LogEntryListParams, LogEntryRead, LogEntryUpdate
+from enola.core.schemas.journal import (
+    LogCandidate,
+    LogEntryCreate,
+    LogEntryListParams,
+    LogEntryRead,
+    LogEntryUpdate,
+)
 from enola.core.services.activity import ActivityService
 from enola.core.services.journal import LogEntryService
 

@@ -7,8 +7,21 @@ test fixtures rely on that, so keep the import list complete.
 from enola.core.models.academics import Assessment, Course, FypMilestone
 from enola.core.models.base import Base, IdMixin, TimestampMixin
 from enola.core.models.documents import EMBEDDING_DIM, Document, DocumentChunk, scope_key
-from enola.core.models.finance import Account, Category, Transaction, TransactionSplit
-from enola.core.models.infra import ActivityLog, ApprovalRequest, MemoryFact, Notification, UserSession
+from enola.core.models.finance import (
+    Account,
+    Category,
+    Settlement,
+    SettlementAllocation,
+    Transaction,
+    TransactionSplit,
+)
+from enola.core.models.infra import (
+    ActivityLog,
+    ApprovalRequest,
+    MemoryFact,
+    Notification,
+    UserSession,
+)
 from enola.core.models.jobs import Application, ApplicationEvent, Company, JobPosting
 from enola.core.models.journal import LogEntry
 from enola.core.models.learning import LearningGoal, LearningResource
@@ -43,6 +56,8 @@ __all__ = [
     "PersonTag",
     "Project",
     "ProjectSnapshot",
+    "Settlement",
+    "SettlementAllocation",
     "Task",
     "TaskLink",
     "TimestampMixin",

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
+from typing import Annotated
+
+from fastapi import APIRouter, Query
 
 from enola.api.crud import crud_router
 from enola.api.deps import CurrentSession, DbSession
+from enola.core.schemas.base import Page
 from enola.core.schemas.finance import (
     AccountCreate,
     AccountListParams,
@@ -14,13 +17,22 @@ from enola.core.schemas.finance import (
     CategoryRead,
     CategoryUpdate,
     FinanceSummary,
-    SplitRead,
+    OwedRow,
+    SettlementCreate,
+    SettlementListParams,
+    SettlementRead,
     TransactionCreate,
     TransactionListParams,
     TransactionRead,
     TransactionUpdate,
 )
-from enola.core.services.finance import AccountService, CategoryService, TransactionService
+from enola.core.services.finance import (
+    AccountService,
+    CategoryService,
+    SettlementService,
+    TransactionService,
+    owed_rows,
+)
 
 router = APIRouter()
 router.include_router(
@@ -63,8 +75,19 @@ def summary(db: DbSession, _: CurrentSession, month: str | None = None) -> Finan
     return TransactionService(db).summary(month)
 
 
-@router.post("/splits/{split_id}/settle", response_model=SplitRead, tags=["finance"], operation_id="splits_settle")
-def settle(split_id: int, db: DbSession, _: CurrentSession) -> SplitRead:
-    split = TransactionService(db).settle_split(split_id)
-    tx = TransactionService(db).to_read(split.transaction)
-    return next(s for s in tx.splits if s.id == split.id)
+@router.get("/finance/balances", response_model=list[OwedRow], tags=["finance"], operation_id="finance_balances")
+def balances(db: DbSession, _: CurrentSession) -> list[OwedRow]:
+    return owed_rows(db)
+
+
+@router.get("/settlements", response_model=Page[SettlementRead], tags=["settlements"], operation_id="settlements_list")
+def list_settlements(params: Annotated[SettlementListParams, Query()], db: DbSession, _: CurrentSession) -> Page[SettlementRead]:
+    service = SettlementService(db)
+    rows, total = service.list(params)
+    return Page[SettlementRead](items=[service.to_read(r) for r in rows], total=total)
+
+
+@router.post("/settlements", response_model=SettlementRead, status_code=201, tags=["settlements"], operation_id="settlements_create")
+def create_settlement(body: SettlementCreate, db: DbSession, _: CurrentSession) -> SettlementRead:
+    service = SettlementService(db)
+    return service.to_read(service.create(body))

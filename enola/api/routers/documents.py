@@ -9,7 +9,12 @@ from enola.agent.memory.retrieval import retrieve
 from enola.api.deps import CurrentSession, DbSession
 from enola.core.enums import EntityType
 from enola.core.schemas.base import Page
-from enola.core.schemas.documents import DocumentListParams, DocumentRead, RetrievalHit, RetrievalQuery
+from enola.core.schemas.documents import (
+    DocumentListParams,
+    DocumentRead,
+    RetrievalHit,
+    RetrievalQuery,
+)
 from enola.core.services.documents import DocumentService
 from enola.core.storage import get_storage
 from enola.ingest.embeddings import get_embedder

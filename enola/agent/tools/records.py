@@ -9,11 +9,19 @@ from sqlalchemy import or_, select
 
 from enola.agent.context import current_context
 from enola.agent.registry import tool
-from enola.core.enums import ActorSource, EntityType, InteractionKind, MemorySource, Risk, TaskPriority, TaskState
-from enola.core.models import Application, MemoryFact, Person, Task
+from enola.core.enums import (
+    ActorSource,
+    EntityType,
+    InteractionKind,
+    MemorySource,
+    Risk,
+    TaskPriority,
+    TaskState,
+)
+from enola.core.mailer import send_mail
+from enola.core.models import Application, MemoryFact, Person
 from enola.core.schemas.people import InteractionCreate
 from enola.core.schemas.tasks import TaskCreate, TaskLinkIn
-from enola.core.services.jobs import ApplicationService
 from enola.core.services.people import InteractionService, PersonService
 from enola.core.services.tasks import TaskService
 
@@ -124,14 +132,19 @@ def delete_person(person_id: int, reason: str) -> str:
 
 
 @tool(risk=Risk.EXTERNAL, kind_label="email · outbound")
-def send_email(to: str, subject: str, body: str) -> str:
-    """Send an email on the owner's behalf. EXTERNAL: always Held first. Delivery is not wired in v1;
-    approval records the send in the activity log and in the recipient's interactions."""
+def send_email(to: str, subject: str, body: str, reply_to_message_id: str = "") -> str:
+    """Send an email on the owner's behalf. EXTERNAL: always Held first, and the send is
+    real — once approved the message leaves. Pass `reply_to_message_id` (from
+    read_email_thread) when answering a thread, so it continues the conversation instead
+    of starting a new one."""
     ctx = current_context()
+    # Send first: an interaction logged for a message that never left would be a lie,
+    # and the owner would believe they had replied.
+    message_id = send_mail(to=to.strip(), subject=subject, body=body, in_reply_to=reply_to_message_id.strip())
     person = ctx.db.scalar(select(Person).where(Person.email.ilike(to.strip())))
     if person is not None:
         InteractionService(ctx.db).create(
             InteractionCreate(person_id=person.id, kind=InteractionKind.EMAIL, summary=f"Sent: {subject}", occurred_at=datetime.now(UTC), source=ActorSource.ENOLA)
         )
-    ApplicationService  # noqa: B018  (kept importable for future linking of sends to applications)
-    return f"Approved send to {to}: “{subject}”. (No mail transport in v1: recorded, not delivered.)"
+    threaded = " (as a reply in the existing thread)" if reply_to_message_id.strip() else ""
+    return f"Sent to {to}: “{subject}”{threaded}. Message-ID {message_id}."

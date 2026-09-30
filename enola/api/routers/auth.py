@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Cookie, Request, Response
 from pydantic import BaseModel, Field
 
-from enola.api.deps import AppSettings, CurrentSession, DbSession
+from enola.api.deps import AppSettings, CurrentSession, DbSession, set_session_cookie
 from enola.core import auth as auth_service
 from enola.core.auth import SESSION_COOKIE
 
@@ -27,15 +27,7 @@ def login(
     body: LoginRequest, request: Request, response: Response, db: DbSession, settings: AppSettings
 ) -> Owner:
     token = auth_service.login(db, body.password, request.headers.get("user-agent", ""))
-    response.set_cookie(
-        SESSION_COOKIE,
-        token,
-        max_age=settings.session_ttl_hours * 3600,
-        httponly=True,
-        secure=settings.cookie_secure,
-        samesite="lax",
-        path="/",
-    )
+    set_session_cookie(response, token, settings)
     return Owner(name=settings.owner_name, email=settings.owner_email, timezone=settings.timezone)
 
 

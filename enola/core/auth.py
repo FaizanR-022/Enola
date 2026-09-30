@@ -75,19 +75,25 @@ def login(db: Session, password: str, user_agent: str) -> str:
         )
     if not verify_password(password, settings.owner_password_hash):
         raise UnauthorizedError("Wrong password.")
+    token, _ = mint_session(db, user_agent)
+    return token
+
+
+def mint_session(db: Session, user_agent: str) -> tuple[str, UserSession]:
+    """Create a session row and return its cookie token. Callers decide who deserves one."""
+    settings = get_settings()
     token = secrets.token_urlsafe(32)
     now = datetime.now(UTC)
-    db.add(
-        UserSession(
-            token_hash=_token_hash(token),
-            created_at=now,
-            expires_at=now + timedelta(hours=settings.session_ttl_hours),
-            last_seen_at=now,
-            user_agent=user_agent[:300],
-        )
+    row = UserSession(
+        token_hash=_token_hash(token),
+        created_at=now,
+        expires_at=now + timedelta(hours=settings.session_ttl_hours),
+        last_seen_at=now,
+        user_agent=user_agent[:300],
     )
+    db.add(row)
     db.flush()
-    return token
+    return token, row
 
 
 def resolve_session(db: Session, token: str | None) -> UserSession:

@@ -6,7 +6,7 @@ from decimal import Decimal
 from sqlalchemy import DateTime, ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from enola.core.enums import AccountKind, TransactionKind
+from enola.core.enums import AccountKind, SettlementDirection, TransactionKind
 from enola.core.models.base import Base, IdMixin, TimestampMixin, enum_column
 
 # Manual entry only. There are no bank connections and there never will be.
@@ -33,6 +33,8 @@ class Transaction(Base, IdMixin, TimestampMixin):
     __tablename__ = "transaction"
 
     account_id: Mapped[int] = mapped_column(ForeignKey("account.id", ondelete="RESTRICT"), nullable=False, index=True)
+    # Transfers only: the account the money moved into.
+    to_account_id: Mapped[int | None] = mapped_column(ForeignKey("account.id", ondelete="RESTRICT"))
     category_id: Mapped[int | None] = mapped_column(ForeignKey("category.id", ondelete="SET NULL"))
     kind: Mapped[TransactionKind] = enum_column(TransactionKind, nullable=False, default=TransactionKind.EXPENSE)
     # Always positive; `kind` gives the direction.
@@ -47,14 +49,42 @@ class Transaction(Base, IdMixin, TimestampMixin):
 
 
 class TransactionSplit(Base, IdMixin, TimestampMixin):
-    """One person's share of a shared expense. Settling only records it here;
-    Enola never moves money."""
+    """One person's share of a shared expense. Whether it is settled is derived from
+    settlement allocations; nothing here is ever "marked paid"."""
 
     __tablename__ = "transaction_split"
 
     transaction_id: Mapped[int] = mapped_column(ForeignKey("transaction.id", ondelete="CASCADE"), nullable=False, index=True)
     person_id: Mapped[int] = mapped_column(ForeignKey("person.id", ondelete="CASCADE"), nullable=False, index=True)
     share_amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
-    settled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     transaction: Mapped[Transaction] = relationship(back_populates="splits")
+    allocations: Mapped[list[SettlementAllocation]] = relationship(back_populates="split", cascade="all, delete-orphan")
+
+
+class Settlement(Base, IdMixin, TimestampMixin):
+    """A payment between the owner and a person, full or partial, tied to specific
+    splits only when an allocation says so. Balances are derived from splits minus
+    settlements and never stored. Recording one moves no money."""
+
+    __tablename__ = "settlement"
+
+    person_id: Mapped[int] = mapped_column(ForeignKey("person.id", ondelete="CASCADE"), nullable=False, index=True)
+    amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    direction: Mapped[SettlementDirection] = enum_column(SettlementDirection, nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    note: Mapped[str] = mapped_column(String(300), nullable=False, default="")
+    account_id: Mapped[int | None] = mapped_column(ForeignKey("account.id", ondelete="SET NULL"))
+
+    allocations: Mapped[list[SettlementAllocation]] = relationship(back_populates="settlement", cascade="all, delete-orphan")
+
+
+class SettlementAllocation(Base, IdMixin):
+    __tablename__ = "settlement_allocation"
+
+    settlement_id: Mapped[int] = mapped_column(ForeignKey("settlement.id", ondelete="CASCADE"), nullable=False, index=True)
+    transaction_split_id: Mapped[int] = mapped_column(ForeignKey("transaction_split.id", ondelete="CASCADE"), nullable=False, index=True)
+    amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+
+    settlement: Mapped[Settlement] = relationship(back_populates="allocations")
+    split: Mapped[TransactionSplit] = relationship(back_populates="allocations")

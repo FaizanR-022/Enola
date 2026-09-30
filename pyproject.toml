@@ -16,12 +16,17 @@ dependencies = [
   "langgraph-checkpoint-postgres>=2.0",
   "langchain-core>=0.3",
   "langchain-anthropic>=0.3",
+  "langchain-google-genai>=2.1",
   "pgvector>=0.3",
   "apscheduler>=3.10,<4",
   "httpx>=0.27",
   "python-multipart>=0.0.9",
   "pypdf>=5.0",
 ]
+
+[project.scripts]
+# `enola` on PATH whenever the venv is active, in any shell.
+enola = "enola.scripts.dev:main"
 
 [project.optional-dependencies]
 dev = [

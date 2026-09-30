@@ -36,6 +36,7 @@ from enola.core.enums import (
     PostingStatus,
     ProjectStatus,
     Risk,
+    SettlementDirection,
     TaskPriority,
     TaskSource,
     TaskState,
@@ -43,7 +44,13 @@ from enola.core.enums import (
 )
 from enola.core.models import Company, MemoryFact, Person
 from enola.core.schemas.academics import AssessmentCreate, CourseCreate, FypMilestoneCreate
-from enola.core.schemas.finance import AccountCreate, CategoryCreate, SplitIn, TransactionCreate
+from enola.core.schemas.finance import (
+    AccountCreate,
+    CategoryCreate,
+    SettlementCreate,
+    SplitIn,
+    TransactionCreate,
+)
 from enola.core.schemas.jobs import ApplicationCreate, JobPostingCreate
 from enola.core.schemas.journal import LogEntryCreate
 from enola.core.schemas.learning import LearningGoalCreate, LearningResourceIn
@@ -52,7 +59,12 @@ from enola.core.schemas.projects import ProjectCreate
 from enola.core.schemas.tasks import TaskCreate, TaskLinkIn
 from enola.core.services.academics import AssessmentService, CourseService, FypMilestoneService
 from enola.core.services.activity import record_activity
-from enola.core.services.finance import AccountService, CategoryService, TransactionService
+from enola.core.services.finance import (
+    AccountService,
+    CategoryService,
+    SettlementService,
+    TransactionService,
+)
 from enola.core.services.jobs import ApplicationService, JobPostingService
 from enola.core.services.journal import LogEntryService
 from enola.core.services.learning import LearningGoalService
@@ -283,13 +295,16 @@ def seed(db: Session) -> dict[str, int]:
     tx(meezan, "subscriptions", TransactionKind.EXPENSE, 5680, "ChatGPT Plus", 4)
     tx(meezan, "one-off", TransactionKind.EXPENSE, 8990, "Daraz — mechanical keyboard", 5)
     tx(cash, "fuel", TransactionKind.EXPENSE, 4000, "Fuel — top up", 7)
-    tx(sadapay, "food", TransactionKind.SETTLEMENT, 1150, "Hamza — settled dinner", 9, paid_by_me=False)
     tx(meezan, "bills", TransactionKind.EXPENSE, 3500, "Internet bill", 13)
     tx(meezan, "subscriptions", TransactionKind.EXPENSE, 3500, "GitHub Copilot", 14)
     tx(cash, "university", TransactionKind.EXPENSE, 900, "FYP poster printing — Areeba paid", 14, [SplitIn(person_id=people["Areeba Fatima"].id, share_amount=Decimal("450"))], paid_by_me=False)
+    # Hamza paid back part of the dinner from last week: a partial settlement, the real shape.
+    tx(sadapay, "food", TransactionKind.EXPENSE, 2300, "Dinner at Kolachi — you paid", 9, [SplitIn(person_id=people["Hamza Sheikh"].id, share_amount=Decimal("1150"))])
+    SettlementService(db).create(SettlementCreate(person_id=people["Hamza Sheikh"].id, amount=Decimal("700"), direction=SettlementDirection.THEY_PAID_ME, occurred_at=_at(-7, 12), note="SadaPay transfer", account_id=sadapay))
     tx(meezan, None, TransactionKind.INCOME, 25000, "Freelance — landing page for a cousin's shop", 10)
     tx(meezan, "food", TransactionKind.EXPENSE, 2100, "Groceries — Imtiaz", 1)
     counts["transaction"] = 11
+    counts["settlement"] = 1
 
     # --- projects -----------------------------------------------------------------------
     projects = ProjectService(db)
@@ -356,13 +371,18 @@ def seed(db: Session) -> dict[str, int]:
 
 
 def main() -> None:
+    """--reset wipes and reseeds. --wipe empties it and stops, for starting from nothing."""
+    do_wipe = "--wipe" in sys.argv
     do_reset = "--reset" in sys.argv
     with session_scope() as db:
-        if do_reset:
+        if do_wipe or do_reset:
             reset(db)
         elif db.query(Person).count() > 0:
-            print("Database already has people. Use --reset to wipe and reseed.", file=sys.stderr)
+            print("Database already has people. Use --reset to wipe and reseed, or --wipe to just empty it.", file=sys.stderr)
             sys.exit(1)
+        if do_wipe:
+            print("Wiped. Every record is gone; the owner login and migration history remain.")
+            return
         counts = seed(db)
     for table, n in counts.items():
         print(f"{table:16} {n}")

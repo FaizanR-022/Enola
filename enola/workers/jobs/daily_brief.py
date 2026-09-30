@@ -39,7 +39,7 @@ def compose_brief(db: Session, *, now: datetime | None = None) -> tuple[str, str
         select(Notification)
         .where(
             Notification.channel == NotificationChannel.IN_APP,
-            Notification.kind.in_((NotificationKind.FOLLOWUP_NUDGE, NotificationKind.TASK_DUE, NotificationKind.ACADEMIC_DEADLINE)),
+            Notification.kind.in_((NotificationKind.THREAD_QUIET, NotificationKind.TASK_DUE, NotificationKind.ACADEMIC_DEADLINE)),
             Notification.read_at.is_(None),
             Notification.state != NotificationState.FAILED,
         )

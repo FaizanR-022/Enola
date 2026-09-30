@@ -12,7 +12,9 @@ from enola.core.repository import Repository
 from enola.core.schemas.infra import NotificationListParams, NotificationRead
 from enola.core.services.base import CrudService
 
-REMINDER_KINDS = (NotificationKind.TASK_DUE, NotificationKind.ACADEMIC_DEADLINE, NotificationKind.FOLLOWUP_NUDGE, NotificationKind.HELD)
+# What the dashboard and the badge count as a reminder. Cold contacts are deliberately
+# absent: the dashboard already shows them under "Going cold", and People owns them.
+REMINDER_KINDS = (NotificationKind.TASK_DUE, NotificationKind.ACADEMIC_DEADLINE, NotificationKind.THREAD_QUIET, NotificationKind.HELD)
 
 
 class NotificationRepository(Repository[Notification]):

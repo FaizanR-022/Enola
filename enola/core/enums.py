@@ -147,6 +147,11 @@ class TransactionKind(StrEnum):
     SETTLEMENT = "settlement"
 
 
+class SettlementDirection(StrEnum):
+    THEY_PAID_ME = "they_paid_me"
+    I_PAID_THEM = "i_paid_them"
+
+
 class ProjectStatus(StrEnum):
     ACTIVE = "active"
     COURSEWORK = "coursework"
@@ -180,7 +185,8 @@ class MemoryState(StrEnum):
 class NotificationKind(StrEnum):
     TASK_DUE = "task_due"
     ACADEMIC_DEADLINE = "academic_deadline"
-    FOLLOWUP_NUDGE = "followup_nudge"
+    THREAD_QUIET = "thread_quiet"  # a recruiter thread with no activity
+    CONTACT_COLD = "contact_cold"  # a person whose cadence has lapsed
     DAILY_BRIEF = "daily_brief"
     HELD = "held"
 
@@ -205,9 +211,19 @@ class ActivityKind(StrEnum):
     JOB_RUN = "job_run"
     MEMORY = "memory"
     NOTE = "note"
+    MODEL_CALL = "model_call"
+
+
+class ChatSource(StrEnum):
+    """How a chat turn was initiated. Voice must never bypass the gate; the source is
+    recorded so a spoken turn's Held item is auditable as such."""
+
+    TEXT = "text"
+    VOICE = "voice"
 
 
 ALL_ENUMS: tuple[type[StrEnum], ...] = (
+    ChatSource,
     Risk,
     ApprovalState,
     TaskState,
@@ -224,6 +240,7 @@ ALL_ENUMS: tuple[type[StrEnum], ...] = (
     MilestoneState,
     AccountKind,
     TransactionKind,
+    SettlementDirection,
     ProjectStatus,
     LearningGoalState,
     DocumentStatus,
@@ -234,3 +251,9 @@ ALL_ENUMS: tuple[type[StrEnum], ...] = (
     NotificationState,
     ActivityKind,
 )
+
+
+class MailBucket(StrEnum):
+    NEEDS_YOU = "needs_you"
+    ONGOING = "ongoing"
+    WORTH_KNOWING = "worth_knowing"

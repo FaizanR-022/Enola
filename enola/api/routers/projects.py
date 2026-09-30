@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
-
 from enola.api.crud import crud_router
 from enola.core.schemas.projects import ProjectCreate, ProjectListParams, ProjectRead, ProjectUpdate
 from enola.core.services.projects import ProjectService

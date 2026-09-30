@@ -1,7 +1,12 @@
 from __future__ import annotations
 
 from enola.api.crud import crud_router
-from enola.core.schemas.learning import LearningGoalCreate, LearningGoalListParams, LearningGoalRead, LearningGoalUpdate
+from enola.core.schemas.learning import (
+    LearningGoalCreate,
+    LearningGoalListParams,
+    LearningGoalRead,
+    LearningGoalUpdate,
+)
 from enola.core.services.learning import LearningGoalService
 
 router = crud_router(

@@ -2,7 +2,8 @@
 summary dict for the log. None of them deliver anything or call the model."""
 
 from enola.workers.jobs.daily_brief import daily_brief
+from enola.workers.jobs.discovery import discover_jobs
 from enola.workers.jobs.followup_nudge import followup_nudges
 from enola.workers.jobs.reminders import due_reminders
 
-__all__ = ["daily_brief", "due_reminders", "followup_nudges"]
+__all__ = ["daily_brief", "discover_jobs", "due_reminders", "followup_nudges"]

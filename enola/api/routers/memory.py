@@ -4,7 +4,12 @@ from fastapi import APIRouter
 
 from enola.api.crud import crud_router
 from enola.api.deps import CurrentSession, DbSession
-from enola.core.schemas.infra import MemoryFactCreate, MemoryFactListParams, MemoryFactRead, MemoryFactUpdate
+from enola.core.schemas.infra import (
+    MemoryFactCreate,
+    MemoryFactListParams,
+    MemoryFactRead,
+    MemoryFactUpdate,
+)
 from enola.core.services.memory import MemoryFactService
 
 router = APIRouter()

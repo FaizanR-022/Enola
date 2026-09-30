@@ -18,9 +18,16 @@ from sqlalchemy.orm import Session
 import enola.agent.tools  # noqa: F401  (registers the application tools)
 from enola.agent.checkpoint import open_checkpointer
 from enola.agent.graph import build_graph
-from enola.agent.registry import ToolRegistry, registry as app_registry
-from enola.core.config import get_settings
-from enola.core.enums import ApprovalState
+from enola.agent.models import (
+    ModelRole,
+    make_chat_model,
+    model_available,
+    model_id_for,
+    no_key_message,
+)
+from enola.agent.registry import ToolRegistry
+from enola.agent.registry import registry as app_registry
+from enola.core.enums import ApprovalState, ChatSource
 from enola.core.errors import AgentUnavailableError, ConflictError, InvalidInputError, NotFoundError
 from enola.core.logging import bind_context, get_logger
 from enola.core.models.infra import ApprovalRequest
@@ -45,22 +52,12 @@ class RunResult:
     messages: list[ChatMessage]
     held_approval_id: int | None
     aborted: bool
-
-
-NO_KEY_MESSAGE = "ANTHROPIC_API_KEY is not set, so Enola cannot think yet."
-
-
-def model_available() -> bool:
-    return bool(get_settings().anthropic_api_key)
+    source: ChatSource = ChatSource.TEXT
 
 
 def make_model(model_name: str | None = None) -> BaseChatModel:
-    settings = get_settings()
-    if not settings.anthropic_api_key:
-        raise AgentUnavailableError(NO_KEY_MESSAGE)
-    from langchain_anthropic import ChatAnthropic
-
-    return ChatAnthropic(model=model_name or settings.agent_model, api_key=settings.anthropic_api_key, max_tokens=4096, timeout=120)
+    """The chat loop's model. Kept as a module function so tests can monkeypatch it."""
+    return make_chat_model(ModelRole.AGENT, model_name=model_name)
 
 
 class UnavailableModel(BaseChatModel):
@@ -75,7 +72,7 @@ class UnavailableModel(BaseChatModel):
     def _generate(self, messages: Any, stop: Any = None, run_manager: Any = None, **kwargs: Any) -> Any:
         from langchain_core.outputs import ChatGeneration, ChatResult
 
-        text = f"Done. I carried out the approved action, but I cannot write a reply: {NO_KEY_MESSAGE}"
+        text = f"Done. I carried out the approved action, but I cannot write a reply: {no_key_message()}"
         return ChatResult(generations=[ChatGeneration(message=AIMessage(content=text))])
 
     def bind_tools(self, tools: Any, **kwargs: Any) -> Any:
@@ -114,9 +111,9 @@ class AgentService:
             self._model = make_model() if model_available() else UnavailableModel()
         return self._model
 
-    def run(self, *, text: str, thread_id: str = MAIN_THREAD, scope: str = "everything") -> RunResult:
+    def run(self, *, text: str, thread_id: str = MAIN_THREAD, scope: str = "everything", source: ChatSource = ChatSource.TEXT) -> RunResult:
         if self._model is None and not model_available():
-            raise AgentUnavailableError(NO_KEY_MESSAGE)
+            raise AgentUnavailableError(no_key_message())
         pending = self.db.scalar(
             select(ApprovalRequest.id).where(ApprovalRequest.thread_id == thread_id, ApprovalRequest.state == ApprovalState.HELD)
         )
@@ -126,12 +123,14 @@ class AgentService:
             raise ConflictError("Something is Held on this thread. Decide it in Approvals first.", details={"approval_id": pending})
         run_id = uuid.uuid4().hex[:12]
         with bind_context(run_id=run_id, thread_id=thread_id):
-            log.info("run_start", scope=scope)
-            return self._invoke(
+            log.info("run_start", scope=scope, source=str(source))
+            result = self._invoke(
                 {"messages": [HumanMessage(content=text)], "run_id": run_id, "thread_id": thread_id, "scope": scope, "aborted": False},
                 thread_id=thread_id,
                 run_id=run_id,
             )
+            result.source = source
+            return result
 
     def decide(self, approval_id: int, *, approve: bool, args: dict[str, Any] | None = None, note: str = "") -> RunResult:
         """Resolve a Held request and resume its run from the checkpoint."""
@@ -161,7 +160,7 @@ class AgentService:
     def _invoke(self, payload: Any, *, thread_id: str, run_id: str) -> RunResult:
         config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
         with open_checkpointer(self.database_url) as saver:
-            graph = build_graph(model=self.model, registry=self.registry, checkpointer=saver, database_url=self.database_url)
+            graph = build_graph(model=self.model, registry=self.registry, checkpointer=saver, database_url=self.database_url, model_id=model_id_for(ModelRole.AGENT))
             result = graph.invoke(payload, config=config)
             snapshot = graph.get_state(config)
         held_id: int | None = None

@@ -24,7 +24,7 @@ from enola.core.db import session_scope
 from enola.core.enums import ActivityKind
 from enola.core.logging import bind_context, configure_logging, get_logger
 from enola.core.services.activity import record_activity
-from enola.workers.jobs import daily_brief, due_reminders, followup_nudges
+from enola.workers.jobs import daily_brief, discover_jobs, due_reminders, followup_nudges
 from enola.workers.outbox import deliver_due
 
 log = get_logger(__name__)
@@ -59,6 +59,10 @@ def _brief(db: Session) -> dict[str, int]:
     return daily_brief(db)
 
 
+def _discovery(db: Session) -> dict[str, int]:
+    return discover_jobs(db)
+
+
 def _deliver(db: Session) -> dict[str, int]:
     return deliver_due(db)
 
@@ -71,6 +75,7 @@ def run_all_once() -> None:
     run_job("reminders", _reminders, record=True)
     run_job("followup_nudges", _nudges, record=True)
     run_job("daily_brief", _brief, record=True)
+    run_job("discovery", _discovery, record=True)
     run_job("deliver", _deliver)
     run_job("purge_sessions", _purge_sessions)
 
@@ -85,6 +90,9 @@ def main() -> None:
     scheduler.add_job(lambda: run_job("reminders", _reminders, record=True), IntervalTrigger(minutes=15), id="reminders")
     scheduler.add_job(lambda: run_job("followup_nudges", _nudges, record=True), IntervalTrigger(hours=1), id="nudges")
     scheduler.add_job(lambda: run_job("daily_brief", _brief, record=True), CronTrigger(hour=settings.daily_brief_hour, minute=0), id="brief")
+    # Once a day, just after the brief: the free tiers are small and postings do not
+    # move fast enough to be worth more.
+    scheduler.add_job(lambda: run_job("discovery", _discovery, record=True), CronTrigger(hour=settings.daily_brief_hour, minute=20), id="discovery")
     scheduler.add_job(lambda: run_job("deliver", _deliver), IntervalTrigger(minutes=1), id="deliver")
     scheduler.add_job(lambda: run_job("purge_sessions", _purge_sessions), CronTrigger(hour=3, minute=30), id="purge")
     log.info("worker_start", brief_hour=settings.daily_brief_hour, timezone=settings.timezone, started=datetime.now(UTC).isoformat())

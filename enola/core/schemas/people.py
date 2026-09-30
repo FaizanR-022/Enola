@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 
 from pydantic import Field
 
@@ -78,4 +79,5 @@ class SharedMoneyRow(Schema):
     occurred_at: datetime
     # Positive: they owe you. Negative: you owe them.
     amount: float
-    settled_at: datetime | None
+    allocated: Decimal
+    settled: bool

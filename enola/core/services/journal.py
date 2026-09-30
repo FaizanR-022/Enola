@@ -11,7 +11,12 @@ from enola.core.models.infra import ActivityLog
 from enola.core.models.journal import LogEntry
 from enola.core.models.tasks import Task
 from enola.core.repository import Repository
-from enola.core.schemas.journal import LogCandidate, LogEntryCreate, LogEntryListParams, LogEntryRead
+from enola.core.schemas.journal import (
+    LogCandidate,
+    LogEntryCreate,
+    LogEntryListParams,
+    LogEntryRead,
+)
 from enola.core.services.base import CrudService
 
 

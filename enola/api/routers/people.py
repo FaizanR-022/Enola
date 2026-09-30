@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from enola.api.deps import CurrentSession, DbSession
-
 from enola.api.crud import crud_router
+from enola.api.deps import CurrentSession, DbSession
 from enola.core.schemas.people import (
     InteractionCreate,
     InteractionListParams,

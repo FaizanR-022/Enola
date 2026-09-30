@@ -19,7 +19,7 @@ from datetime import UTC, datetime
 from typing import Annotated, Any, Literal, TypedDict
 
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import AIMessage, AnyMessage, SystemMessage, ToolMessage
+from langchain_core.messages import AIMessage, AnyMessage, ToolMessage
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
@@ -29,7 +29,8 @@ from sqlalchemy import select
 
 from enola.agent.context import ToolContext, tool_context
 from enola.agent.memory.profile import active_facts
-from enola.agent.prompts import build_system_prompt
+from enola.agent.models import ModelRole, invoke_checked, record_model_call, system_message
+from enola.agent.prompts.system import build_system_blocks
 from enola.agent.registry import ToolRegistry, ToolSpec
 from enola.core.config import get_settings
 from enola.core.db import get_sessionmaker
@@ -55,6 +56,23 @@ class Decision(TypedDict, total=False):
     decision: Literal["approved", "rejected"]
     args: dict[str, Any]
     note: str
+
+
+def _earlier_result(messages: list[AnyMessage], name: str, args: dict[str, Any]) -> str | None:
+    """The result of an identical earlier call in this turn, if there was one.
+
+    Identical means same tool and same arguments. A second call with different arguments
+    is legitimate work; a second call with the same arguments cannot learn anything new.
+    """
+    wanted: str | None = None
+    for message in messages:
+        if isinstance(message, AIMessage):
+            for call in message.tool_calls:
+                if str(call["name"]) == name and dict(call["args"]) == args:
+                    wanted = str(call["id"])
+        elif isinstance(message, ToolMessage) and wanted and str(message.tool_call_id) == wanted:
+            return str(message.content)
+    return None
 
 
 def _pending_tool_call(messages: list[AnyMessage]) -> dict[str, Any] | None:
@@ -94,22 +112,27 @@ def build_graph(
     registry: ToolRegistry,
     checkpointer: BaseCheckpointSaver[Any],
     database_url: str | None = None,
+    model_id: str = "",
 ) -> CompiledStateGraph[AgentState, Any, Any, Any]:
     settings = get_settings()
     sessions = get_sessionmaker(database_url)
+    # Tools are sorted by name in the registry: a stable order is part of the cache prefix.
     bound = model.bind_tools(registry.langchain_tools())
 
     def agent(state: AgentState) -> dict[str, Any]:
         with sessions() as db:
             facts = active_facts(db)
-        system = build_system_prompt(
+        blocks = build_system_blocks(
             owner_name=settings.owner_name,
             timezone=settings.timezone,
             facts=list(facts),
             scope=state["scope"],
             today=datetime.now(UTC).strftime("%A %d %B %Y"),
         )
-        response = bound.invoke([SystemMessage(content=system), *state["messages"]])
+        response = invoke_checked(bound, [system_message(blocks), *state["messages"]])
+        with sessions() as db:
+            record_model_call(db, role=ModelRole.AGENT, model_id=model_id, message=response, run_id=state["run_id"], thread_id=state["thread_id"], purpose="chat")
+            db.commit()
         return {"messages": [response]}
 
     def gate(state: AgentState) -> dict[str, Any]:
@@ -127,6 +150,22 @@ def build_graph(
                 record_activity(db, kind=ActivityKind.TOOL_CALL, summary=f"Refused unknown tool {name}", run_id=run_id, thread_id=thread_id, tool_name=name)
                 db.commit()
             return {"messages": [ToolMessage(content=f"Refused: {exc.message}", tool_call_id=call_id)]}
+
+        # A weaker model will sometimes ask the same question two or three times in one
+        # turn, which the owner sees as Enola repeating itself. Hand back the answer it
+        # already has instead of running the tool again — and say so, so it stops asking.
+        if not spec.gated:
+            earlier = _earlier_result(state["messages"], name, raw_args)
+            if earlier is not None:
+                log.info("tool_repeat_short_circuited", tool=name, run_id=run_id, thread_id=thread_id)
+                return {
+                    "messages": [
+                        ToolMessage(
+                            content=f"You already called {name} with these arguments in this turn. The result was:\n{earlier}\n\nUse it and answer the owner now; do not call it again.",
+                            tool_call_id=call_id,
+                        )
+                    ]
+                }
 
         args = raw_args
         if spec.gated:
@@ -163,7 +202,7 @@ def build_graph(
                     db.commit()
                 log.info("tool_rejected", tool=name, run_id=run_id)
                 return {
-                    "messages": [ToolMessage(content=f"The owner rejected this action." + (f" Reason: {note}" if note else ""), tool_call_id=call_id)],
+                    "messages": [ToolMessage(content="The owner rejected this action." + (f" Reason: {note}" if note else ""), tool_call_id=call_id)],
                     "aborted": True,
                 }
             args = dict(decision.get("args") or raw_args)

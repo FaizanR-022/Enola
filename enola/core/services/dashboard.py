@@ -9,7 +9,14 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from enola.core.config import get_settings
-from enola.core.enums import ApplicationStage, ApprovalState, NotificationChannel, NotificationKind, TaskState
+from enola.core.enums import (
+    ActivityKind,
+    ApplicationStage,
+    ApprovalState,
+    NotificationChannel,
+    NotificationKind,
+    TaskState,
+)
 from enola.core.models import (
     Application,
     ApprovalRequest,
@@ -82,8 +89,8 @@ def build_dashboard(db: Session) -> DashboardRead:
     people = PersonService(db)
     cold = [people.to_read(p) for p in people.going_cold(limit=4)]
 
-    activity_rows, _ = ActivityService(db).list(ActivityListParams(limit=6, since=datetime.now(UTC) - timedelta(hours=12)))
-    activity = [ActivityRead.model_validate(a) for a in activity_rows]
+    activity_rows, _ = ActivityService(db).list(ActivityListParams(limit=12, since=datetime.now(UTC) - timedelta(hours=12)))
+    activity = [ActivityRead.model_validate(a) for a in activity_rows if a.kind != ActivityKind.MODEL_CALL][:6]
 
     brief_row = db.scalar(
         select(Notification)

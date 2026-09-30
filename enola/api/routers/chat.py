@@ -7,8 +7,9 @@ from pydantic import BaseModel, Field
 
 from enola.agent.registry import registry
 from enola.agent.service import MAIN_THREAD, AgentService, RunResult
+from enola.agent.speech import spoken_text_for
 from enola.api.deps import CurrentSession, DbSession
-from enola.core.enums import Risk
+from enola.core.enums import ChatSource, Risk
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -26,12 +27,15 @@ class RunRead(BaseModel):
     messages: list[ChatMessageRead]
     held_approval_id: int | None
     aborted: bool
+    source: ChatSource
+    spoken_text: str
 
 
 class ChatRequest(BaseModel):
     text: str = Field(min_length=1, max_length=8000)
     thread_id: str = MAIN_THREAD
     scope: str = "everything"
+    source: ChatSource = ChatSource.TEXT
 
 
 class ToolInfo(BaseModel):
@@ -48,12 +52,14 @@ def run_read(result: RunResult) -> RunRead:
         messages=[ChatMessageRead(role=m.role, text=m.text, tool_name=m.tool_name, tool_calls=m.tool_calls) for m in result.messages],
         held_approval_id=result.held_approval_id,
         aborted=result.aborted,
+        source=result.source,
+        spoken_text=spoken_text_for(result.messages, held=result.held_approval_id is not None, aborted=result.aborted),
     )
 
 
 @router.post("", response_model=RunRead, operation_id="chat_send")
 def send(body: ChatRequest, db: DbSession, _: CurrentSession) -> RunRead:
-    return run_read(AgentService(db).run(text=body.text, thread_id=body.thread_id, scope=body.scope))
+    return run_read(AgentService(db).run(text=body.text, thread_id=body.thread_id, scope=body.scope, source=body.source))
 
 
 @router.get("/tools", response_model=list[ToolInfo], operation_id="chat_tools")

@@ -22,7 +22,12 @@ from enola.core.schemas.jobs import (
     JobPostingRead,
     JobPostingUpdate,
 )
-from enola.core.services.jobs import ApplicationEventService, ApplicationService, CompanyService, JobPostingService
+from enola.core.services.jobs import (
+    ApplicationEventService,
+    ApplicationService,
+    CompanyService,
+    JobPostingService,
+)
 
 router = APIRouter()
 router.include_router(

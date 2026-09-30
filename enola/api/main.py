@@ -26,6 +26,7 @@ from enola.api.routers import (
     jobs,
     learning,
     log,
+    mail,
     memory,
     notifications,
     people,
@@ -111,7 +112,7 @@ def create_app() -> FastAPI:
         return _error_response(500, "internal_error", "Something went wrong on the server.")
 
     app.include_router(health.router)
-    for module in (auth, people, tasks, jobs, academics, finance, projects, learning, log, memory, approvals, chat, documents, dashboard, notifications):
+    for module in (auth, people, tasks, jobs, academics, finance, projects, learning, log, memory, approvals, chat, documents, dashboard, notifications, mail):
         app.include_router(module.router, prefix="/api")
     return app
 

@@ -8,15 +8,14 @@ class and one line in CHANNELS; nothing else changes.
 
 from __future__ import annotations
 
-import smtplib
 from datetime import UTC, datetime
-from email.message import EmailMessage
 from typing import Protocol
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from enola.core.config import get_settings
+from enola.core.mailer import MailNotConfigured, send_mail
 from enola.core.enums import EntityType, NotificationChannel, NotificationKind, NotificationState
 from enola.core.logging import get_logger
 from enola.core.models.infra import Notification
@@ -41,22 +40,22 @@ class InAppChannel:
 
 
 class EmailToSelfChannel:
+    """Mail to the owner, and only ever to the owner: the recipient is not a parameter."""
+
     name = NotificationChannel.EMAIL
 
     def deliver(self, notification: Notification) -> None:
         settings = get_settings()
-        if not settings.smtp_enabled:
-            raise ChannelNotConfigured("SMTP is not configured (ENOLA_SMTP_HOST / ENOLA_SMTP_FROM).")
-        message = EmailMessage()
-        message["Subject"] = f"[enola] {notification.title}"
-        message["From"] = settings.smtp_from
-        message["To"] = settings.owner_email
-        message.set_content(notification.body or notification.title)
-        with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=20) as smtp:
-            smtp.starttls()
-            if settings.smtp_user:
-                smtp.login(settings.smtp_user, settings.smtp_password)
-            smtp.send_message(message)
+        try:
+            send_mail(
+                to=settings.owner_email,
+                subject=f"[enola] {notification.title}",
+                body=notification.body or notification.title,
+                settings=settings,
+            )
+        except MailNotConfigured as exc:
+            # Not a failure: the row waits until a transport exists.
+            raise ChannelNotConfigured(str(exc)) from exc
 
 
 class ChannelNotConfigured(Exception):

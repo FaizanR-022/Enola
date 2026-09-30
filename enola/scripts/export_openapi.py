@@ -14,7 +14,6 @@ from typing import Any
 
 from enola.api.main import create_app
 
-
 ALWAYS_COMPLETE_SUFFIXES = ("Read", "Summary", "Hit", "Candidate", "Row", "Item", "Owner", "HealthResponse", "HeldCount", "ToolInfo")
 
 

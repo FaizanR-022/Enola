@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Any
 

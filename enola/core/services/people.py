@@ -6,7 +6,7 @@ from decimal import Decimal
 from typing import Any
 
 from pydantic import BaseModel
-from sqlalchemy import Select, case, func, or_, select
+from sqlalchemy import Select, or_, select
 
 from enola.core.models.finance import Transaction, TransactionSplit
 from enola.core.models.people import Interaction, Person, PersonTag
@@ -55,17 +55,10 @@ def _going_cold(person: Person, now: datetime) -> tuple[int | None, bool]:
 
 
 def balances_for(db: Any, person_ids: Sequence[int]) -> dict[int, Decimal]:
-    """Net unsettled PKR per person: positive means they owe you."""
-    if not person_ids:
-        return {}
-    signed = case((Transaction.paid_by_me.is_(True), TransactionSplit.share_amount), else_=-TransactionSplit.share_amount)
-    stmt = (
-        select(TransactionSplit.person_id, func.coalesce(func.sum(signed), 0))
-        .join(Transaction, Transaction.id == TransactionSplit.transaction_id)
-        .where(TransactionSplit.person_id.in_(list(person_ids)), TransactionSplit.settled_at.is_(None))
-        .group_by(TransactionSplit.person_id)
-    )
-    return {int(pid): Decimal(total) for pid, total in db.execute(stmt).all()}
+    """Net PKR per person: positive means they owe you. Derived by the finance service."""
+    from enola.core.services.finance import balances_for as finance_balances
+
+    return finance_balances(db, list(person_ids))
 
 
 class PersonService(CrudService[Person, PersonCreate, BaseModel]):
@@ -177,6 +170,8 @@ def touch_person(db: Any, person_id: int, when: datetime) -> None:
 
 
 def shared_money_for(db: Any, person_id: int) -> list[SharedMoneyRow]:
+    from enola.core.services.finance import allocated_for
+
     stmt = (
         select(TransactionSplit, Transaction)
         .join(Transaction, Transaction.id == TransactionSplit.transaction_id)
@@ -184,8 +179,11 @@ def shared_money_for(db: Any, person_id: int) -> list[SharedMoneyRow]:
         .order_by(Transaction.occurred_at.desc())
         .limit(30)
     )
+    pairs = db.execute(stmt).all()
+    covered = allocated_for(db, [split.id for split, _ in pairs])
     rows = []
-    for split, tx in db.execute(stmt).all():
+    for split, tx in pairs:
         signed = split.share_amount if tx.paid_by_me else -split.share_amount
-        rows.append(SharedMoneyRow(split_id=split.id, transaction_id=tx.id, title=tx.title, occurred_at=tx.occurred_at, amount=float(signed), settled_at=split.settled_at))
+        allocated = covered.get(split.id, Decimal("0"))
+        rows.append(SharedMoneyRow(split_id=split.id, transaction_id=tx.id, title=tx.title, occurred_at=tx.occurred_at, amount=float(signed), allocated=allocated, settled=allocated >= split.share_amount))
     return rows

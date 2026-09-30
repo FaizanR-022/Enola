@@ -4,7 +4,13 @@ from datetime import datetime
 
 from pydantic import Field
 
-from enola.core.enums import ActorSource, ApplicationEventKind, ApplicationStage, LocationKind, PostingStatus
+from enola.core.enums import (
+    ActorSource,
+    ApplicationEventKind,
+    ApplicationStage,
+    LocationKind,
+    PostingStatus,
+)
 from enola.core.schemas.base import ReadSchema, Schema, partial
 
 
