@@ -13,17 +13,37 @@ Prerequisites: Docker Desktop, Python 3.12+, Node 20+.
 
 ```bash
 cp .env.example .env                       # then set ENOLA_OWNER_PASSWORD_HASH (below)
-docker compose up -d                       # Postgres + pgvector on the port in .env (5433)
-
 python -m venv .venv && .venv/Scripts/pip install -e ".[dev]"     # Windows
 python -m enola.core.auth hash "your password"                     # paste into .env
-alembic upgrade head
 python -m enola.scripts.seed --reset       # realistic sample data, dates relative to today
+                                           # (or --wipe to start from an empty database)
+```
 
+Then, every time, one command:
+
+```bash
+./enola.sh               # Git Bash / WSL
+enola.cmd                # PowerShell, cmd, or double-click from Explorer
+enola                    # any shell, once the venv is activated
+```
+
+That is `python -m enola.scripts.dev`: it starts the database, waits for it, applies
+migrations, then runs the API, the worker and the web dev server in one terminal with
+prefixed output, and opens the browser. Ctrl+C stops all of them.
+
+Flags: `--no-web`, `--no-worker`, `--no-reload`, `--no-open`, `--no-db`.
+
+<details><summary>Running the pieces separately</summary>
+
+```bash
+docker compose up -d                                              # Postgres + pgvector
+alembic upgrade head
 .venv/Scripts/python -m uvicorn enola.api.main:app --reload       # API on ENOLA_API_PORT
 .venv/Scripts/python -m enola.workers.scheduler                   # worker, separate process
-cd web && npm install && npm run dev                              # web on 5173
+cd web && npm run dev                                             # web on 5173
 ```
+
+</details>
 
 `ANTHROPIC_API_KEY` makes the agent think. Without it the app still runs: every screen
 works, the worker runs, and Held items can be approved or rejected, but new chat turns
@@ -63,7 +83,7 @@ web/src/
   ui/           primitives: Button, Card, Field, Table, Sheet, Badge, EmptyState, …
   shell/        nav, header, chat rail, ⌘K palette, splash, phone tabs
   data/         the one server-state layer (TanStack Query over the generated client)
-  screens/      one folder per screen; scaffold/ holds the Phase 6 mock-data screens
+  screens/      one screen per file; scaffold/ holds the two still-mock screens (Academics, Email)
   lib/          api.ts (openapi-fetch), api-types.generated.ts, enums.generated.ts
 alembic/        migrations; never edit one after it has been applied
 tests/          gate tests, router smoke tests, scheduling and memory tests
@@ -85,3 +105,33 @@ registered without a risk (`UNCLASSIFIED`) write an `approval_request` row with
 `state='held'` and call LangGraph's `interrupt()`. The run resumes from its Postgres
 checkpoint when you approve (optionally with edited arguments) and ends when you reject.
 The word for that paused state is **Held**, everywhere.
+
+## Iteration 1 (2026-09-17)
+
+Built from `FABLE_PROMPT_ITERATION_1.md` after first real use.
+
+- **Cost.** Two model roles, `ENOLA_AGENT_MODEL` for the chat loop and `ENOLA_UTILITY_MODEL`
+  for summaries and classification, both falling back to `ENOLA_DEFAULT_MODEL`
+  (`claude-haiku-4-5`). Every call is logged to `activity_log` as `model_call` with the
+  model id and token usage. The system prompt is a stable manual block marked for prompt
+  caching plus a small volatile block; `python -m enola.scripts.cache_check` shows the
+  cache-read tokens on a second turn.
+- **Corrections.** Splash holds for `VITE_SPLASH_MIN_MS`; the old follow-up nudge is split
+  into `thread_quiet` (a reminder) and `contact_cold` (never a reminder); tasks complete
+  with two taps plus an undo toast; short Web Audio cues with a mute in Settings;
+  `ENOLA_AUTOLOGIN=true` skips the password for loopback and private-LAN callers only;
+  `$` in `.env` values is written as `$$`.
+- **Colour and density.** Ochre means Held and nothing else. Each screen has its own accent.
+  Urgency is one shared component: overdue (red dot and edge), today, this week, later.
+  The chat rail cycles closed → rail → full screen; Esc returns to the rail.
+- **Finance.** Real screen with five entry paths (expense, income, transfer, split, settle
+  up), a ledger, category spend, and who-owes-whom. Settlements are rows in `settlement`
+  with allocations to split shares; balances are always derived, never stored. The agent
+  has `log_expense`, `log_income`, `log_transfer`, `split_expense`, `record_settlement`
+  (all local writes) and `finance_summary`, `who_owes_me` (reads).
+- **Projects and Self-learning** are wired to `/api/projects` and `/api/learning-goals`.
+- **Voice.** Hold the mic in chat to talk; the transcript lands in the input and never
+  sends by itself. Replies can be read aloud (`speechSynthesis`; auto-speak is off by
+  default, voice and rate in Settings; any new input or the stop control cuts playback).
+  The server composes the spoken text, so a Held reply always starts with the approval
+  notice. `tests/test_voice.py` asserts a voice-initiated external action is Held.
