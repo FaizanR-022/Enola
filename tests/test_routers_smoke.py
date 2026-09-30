@@ -110,10 +110,11 @@ def test_finance_splits_and_summary(client: TestClient) -> None:
     assert {o["person_name"]: float(o["amount"]) for o in summary["owed"]} == {"Usman Raza": 800.0, "Hamza Sheikh": 800.0}
     assert summary["spend"][0]["category_name"] == "carpool" and summary["spend"][0]["pct"] == 100
 
-    settled = client.post(f"/api/splits/{tx['splits'][0]['id']}/settle").json()
-    assert settled["settled_at"] is not None
+    settled = client.post("/api/settlements", json={"person_id": usman, "amount": "800", "direction": "they_paid_me"}).json()
+    assert float(settled["allocated"]) == 800.0
     assert float(client.get("/api/finance/summary").json()["net_owed"]) == 800.0
     assert client.get(f"/api/people/{hamza}").json()["balance"] == 800.0
+    assert client.get(f"/api/transactions/{tx['id']}").json()["splits"][0]["settled"] is True
 
 
 def test_projects_learning_log_memory(client: TestClient) -> None:

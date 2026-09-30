@@ -11,7 +11,8 @@ from sqlalchemy.orm import Session
 
 import enola.agent.tools  # noqa: F401
 from enola.agent.memory.retrieval import retrieve
-from enola.agent.registry import ToolRegistry, registry as app_registry
+from enola.agent.registry import ToolRegistry
+from enola.agent.registry import registry as app_registry
 from enola.agent.service import AgentService
 from enola.core.enums import DocumentStatus, EntityType, MemorySource
 from enola.core.models import Course, MemoryFact

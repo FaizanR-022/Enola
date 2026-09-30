@@ -45,7 +45,8 @@ def test_chat_holds_and_approves_over_http(client: TestClient, scripted: Scripte
     history = client.get("/api/chat/http-1").json()
     assert [m["role"] for m in history] == ["you", "enola", "tool", "enola"]
     activity = client.get("/api/activity").json()
-    assert [a["kind"] for a in activity] == ["approved", "held"]
+    assert [a["kind"] for a in activity if a["kind"] != "model_call"] == ["approved", "held"]
+    assert [a["kind"] for a in activity].count("model_call") == 2
     # Deciding again is refused with the one error shape.
     again = client.post(f"/api/approvals/{run['held_approval_id']}/approve", json={"args": None, "note": ""})
     assert again.status_code == 422 and again.json()["error"]["code"] == "invalid_input"
@@ -59,7 +60,8 @@ def test_chat_rejects_over_http(client: TestClient, scripted: ScriptedModel) -> 
     assert client.get(f"/api/approvals/{run['held_approval_id']}").json()["resolution_note"] == "Too soon."
 
 
-def test_chat_without_key_is_refused(client: TestClient) -> None:
+def test_chat_without_key_is_refused(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(agent_service, "model_available", lambda: False)
     response = client.post("/api/chat", json={"text": "hi"})
     assert response.status_code == 503
     assert response.json()["error"]["code"] == "agent_unavailable"

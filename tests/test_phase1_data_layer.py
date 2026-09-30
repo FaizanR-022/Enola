@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
-from alembic import command
 from fastapi.testclient import TestClient
 from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
 
+from alembic import command
 from enola.core.db import get_engine
 from enola.core.enums import EntityType, TaskSource
 from enola.core.models import Assessment, Person, Task, TaskLink
 from enola.scripts.seed import seed
 from tests.conftest import TEST_URL, alembic_config
-
 
 # LangGraph's checkpointer owns these; they are created by its setup(), not by Alembic.
 LANGGRAPH_TABLES = {"checkpoints", "checkpoint_writes", "checkpoint_blobs", "checkpoint_migrations"}

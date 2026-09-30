@@ -12,12 +12,12 @@ import os
 from collections.abc import Iterator
 
 import pytest
-from alembic import command
 from alembic.config import Config
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from alembic import command
 from enola.core.config import get_settings
 from enola.core.db import Base, get_engine, get_sessionmaker
 
@@ -38,6 +38,21 @@ def migrated_schema() -> Iterator[None]:
     command.downgrade(cfg, "base")
     command.upgrade(cfg, "head")
     yield
+
+
+@pytest.fixture(autouse=True)
+def no_outbound_mail(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The test suite must never send real email.
+
+    The email-to-self channel connects to a live SMTP server. Once the owner configures
+    ENOLA_SMTP_*, an unguarded run would deliver every queued notification to their real
+    inbox — and it did, once. Blanking the host here makes delivery fail as
+    "not configured" regardless of what .env says, which is also what the scheduling
+    tests assert.
+    """
+    settings = get_settings()
+    monkeypatch.setattr(settings, "smtp_host", "")
+    monkeypatch.setattr(settings, "smtp_from", "")
 
 
 @pytest.fixture(autouse=True)

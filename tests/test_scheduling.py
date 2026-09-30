@@ -10,7 +10,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from enola.core.enums import AssessmentKind, NotificationChannel, NotificationKind, NotificationState
+from enola.core.enums import (
+    AssessmentKind,
+    NotificationChannel,
+    NotificationKind,
+    NotificationState,
+)
 from enola.core.models import Notification
 from enola.core.schemas.academics import AssessmentCreate, CourseCreate
 from enola.core.schemas.people import InteractionCreate, PersonCreate
@@ -45,7 +50,7 @@ def test_reminders_nudges_and_brief(db: Session, client: TestClient) -> None:
     kinds = {(n.kind, n.entity_id) for n in db.scalars(select(Notification).where(Notification.channel == NotificationChannel.IN_APP)).all()}
     assert (NotificationKind.TASK_DUE, task_id) in kinds
     assert (NotificationKind.ACADEMIC_DEADLINE, assessment_task_id) in kinds
-    assert (NotificationKind.FOLLOWUP_NUDGE, person_id) in kinds
+    assert (NotificationKind.CONTACT_COLD, person_id) in kinds
 
     # Running the jobs again the same day queues nothing new.
     assert due_reminders(db)["queued"] == 0
@@ -68,17 +73,19 @@ def test_reminders_nudges_and_brief(db: Session, client: TestClient) -> None:
     email_rows = db.scalars(select(Notification).where(Notification.channel == NotificationChannel.EMAIL)).all()
     assert all(r.state == NotificationState.QUEUED and "SMTP" in r.error for r in email_rows)
 
-    # The in-app badge counts the three reminders (the brief is not a badge item).
-    assert client.get("/api/notifications/badge").json() == {"unread": 3}
+    # The badge counts the two due-date reminders. The cold contact is not a reminder:
+    # it shows under "Going cold" and on People, never twice.
+    assert client.get("/api/notifications/badge").json() == {"unread": 2}
     dashboard = client.get("/api/dashboard").json()
     assert dashboard["brief"] is not None and "Sana Iqbal" in dashboard["brief"]["body"]
-    assert {r["kind"] for r in dashboard["reminders"]} == {"task_due", "academic_deadline", "followup_nudge"}
+    assert {r["kind"] for r in dashboard["reminders"]} == {"task_due", "academic_deadline"}
+    assert any(p["name"] == "Sana Iqbal" for p in dashboard["going_cold"])
 
     # Reading one clears it from the badge; read-all clears the rest.
     first = dashboard["reminders"][0]["id"]
     assert client.post(f"/api/notifications/{first}/read").json()["read_at"] is not None
-    assert client.get("/api/notifications/badge").json() == {"unread": 2}
-    assert client.post("/api/notifications/read-all").json()["marked"] == 2
+    assert client.get("/api/notifications/badge").json() == {"unread": 1}
+    assert client.post("/api/notifications/read-all").json()["marked"] == 1
     assert client.get("/api/notifications/badge").json() == {"unread": 0}
 
 

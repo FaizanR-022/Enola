@@ -90,7 +90,7 @@ def test_resume_preserves_context(db: Session, probe_registry: ToolRegistry) -> 
     assert model.calls == 2
     row = db.get(ApprovalRequest, first.held_approval_id)
     assert row is not None and row.state == ApprovalState.APPROVED and row.resolved_at is not None
-    kinds = [a.kind for a in db.scalars(select(ActivityLog).where(ActivityLog.run_id == first.run_id).order_by(ActivityLog.id)).all()]
+    kinds = [a.kind for a in db.scalars(select(ActivityLog).where(ActivityLog.run_id == first.run_id).order_by(ActivityLog.id)).all() if a.kind != ActivityKind.MODEL_CALL]
     assert kinds == [ActivityKind.HELD, ActivityKind.APPROVED]
 
 
@@ -129,9 +129,9 @@ def test_reject_aborts_cleanly(db: Session, probe_registry: ToolRegistry) -> Non
     history = svc.history("t-reject")
     assert [m.role for m in history] == ["you", "enola", "tool"]
     assert history[-1].text.startswith("The owner rejected this action.")
-    kinds = [a.kind for a in db.scalars(select(ActivityLog).where(ActivityLog.run_id == first.run_id).order_by(ActivityLog.id)).all()]
+    kinds = [a.kind for a in db.scalars(select(ActivityLog).where(ActivityLog.run_id == first.run_id).order_by(ActivityLog.id)).all() if a.kind != ActivityKind.MODEL_CALL]
     assert kinds == [ActivityKind.HELD, ActivityKind.REJECTED]
-    # No partial writes: only the two activity rows and the one approval row exist for this run.
+    # No partial writes: only the two activity rows (plus model-call logging) and the one approval row exist for this run.
     assert db.scalar(select(ApprovalRequest.id).where(ApprovalRequest.run_id == first.run_id, ApprovalRequest.id != row.id)) is None
     # Deciding twice is refused.
     with pytest.raises(Exception, match="already rejected"):
