@@ -10,3 +10,7 @@ web/dist/
 web/src/lib/api-types.generated.ts.tmp
 *.log
 enola.egg-info/
+
+.claude/
+diagrams/
+skills-lock.json
