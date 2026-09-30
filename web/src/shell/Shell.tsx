@@ -5,6 +5,7 @@ import { CommandPalette } from "./CommandPalette";
 import { Header } from "./Header";
 import { Nav } from "./Nav";
 import { PhoneTabs } from "./PhoneTabs";
+import { SettingsSheet } from "./SettingsSheet";
 import { ShellStateProvider, useShell } from "./ShellState";
 import { Splash } from "./Splash";
 import { Toast } from "./Toast";
@@ -12,7 +13,7 @@ import { screenForPath } from "./screens";
 import styles from "./Shell.module.css";
 
 function ShellFrame() {
-  const { railOpen, bootDone } = useShell();
+  const { railOpen, railMode, bootDone, settingsOpen, setSettingsOpen } = useShell();
   const location = useLocation();
   const screen = screenForPath(location.pathname);
 
@@ -22,7 +23,7 @@ function ShellFrame() {
       <Nav current={screen.id} />
       <div className={styles["main"]}>
         <Header screen={screen} />
-        <div className={cx(styles["stage"], railOpen && styles["withRail"])}>
+        <div className={cx(styles["stage"], railOpen && styles["withRail"], railMode === "full" && styles["railFull"])}>
           <main className={styles["content"]} id="content">
             <Outlet />
           </main>
@@ -31,6 +32,7 @@ function ShellFrame() {
       </div>
       <PhoneTabs current={screen.id} />
       <CommandPalette />
+      <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <Toast />
     </div>
   );

@@ -16,6 +16,13 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: true,
+      // Vite 8 rejects unfamiliar Host headers. Naming the local aliases here lets
+      // http://enola.localhost:5173 and http://enola.test:5173 work; IP literals and
+      // plain localhost are permitted by Vite regardless, so LAN access is unaffected.
+      // Use .localhost (resolves to loopback with no setup) or .test (needs a hosts
+      // entry). Never .local — that is mDNS and makes Windows DNS crawl — and never
+      // .dev, which browsers force to HTTPS.
+      allowedHosts: ["enola.localhost", "enola.test", ...(env["VITE_ALLOWED_HOSTS"] || "").split(",").filter(Boolean)],
       proxy: {
         "/api": { target: apiTarget, changeOrigin: false },
         "/health": { target: apiTarget, changeOrigin: false },

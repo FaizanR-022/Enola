@@ -59,3 +59,10 @@
 .dismiss:hover {
   color: var(--tx);
 }
+/* The one full-contrast region on the dashboard. */
+.primary {
+  border-color: var(--line2);
+}
+.primaryRow {
+  font-size: var(--fs-13);
+}

@@ -621,17 +621,35 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/splits/{split_id}/settle": {
+    "/api/finance/balances": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Balances */
+        get: operations["finance_balances"];
         put?: never;
-        /** Settle */
-        post: operations["splits_settle"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Settlements */
+        get: operations["settlements_list"];
+        put?: never;
+        /** Create Settlement */
+        post: operations["settlements_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1179,6 +1197,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/email/threads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Threads */
+        get: operations["email_threads"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email/threads/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Thread */
+        get: operations["email_thread"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1252,7 +1304,7 @@ export interface components {
          * ActivityKind
          * @enum {string}
          */
-        ActivityKind: "tool_call" | "held" | "approved" | "rejected" | "job_run" | "memory" | "note";
+        ActivityKind: "tool_call" | "held" | "approved" | "rejected" | "job_run" | "memory" | "note" | "model_call";
         /** ActivityRead */
         ActivityRead: {
             /** Id */
@@ -1283,6 +1335,13 @@ export interface components {
          * @enum {string}
          */
         ActorSource: "you" | "enola" | "email" | "calendar" | "import";
+        /** AllocationIn */
+        AllocationIn: {
+            /** Transaction Split Id */
+            transaction_split_id: number;
+            /** Amount */
+            amount: number | string;
+        };
         /** ApplicationCreate */
         ApplicationCreate: {
             /** Company Id */
@@ -1739,7 +1798,16 @@ export interface components {
              * @default everything
              */
             scope?: string;
+            /** @default text */
+            source?: components["schemas"]["ChatSource"];
         };
+        /**
+         * ChatSource
+         * @description How a chat turn was initiated. Voice must never bypass the gate; the source is
+         *     recorded so a spoken turn's Held item is auditable as such.
+         * @enum {string}
+         */
+        ChatSource: "text" | "voice";
         /** CompanyCreate */
         CompanyCreate: {
             /** Name */
@@ -2014,6 +2082,8 @@ export interface components {
             month: string;
             /** Total Spend */
             total_spend: string;
+            /** Total Income */
+            total_income: string;
             /** Spend */
             spend: components["schemas"]["SpendRow"][];
             /** Owed */
@@ -2516,6 +2586,104 @@ export interface components {
             /** Password */
             password: string;
         };
+        /**
+         * MailBucket
+         * @enum {string}
+         */
+        MailBucket: "needs_you" | "ongoing" | "worth_knowing";
+        /** MailGroupRead */
+        MailGroupRead: {
+            bucket: components["schemas"]["MailBucket"];
+            /** Label */
+            label: string;
+            /** Threads */
+            threads: components["schemas"]["MailThreadRead"][];
+        };
+        /** MailInboxRead */
+        MailInboxRead: {
+            /** Enabled */
+            enabled: boolean;
+            /**
+             * Disabled Reason
+             * @default
+             */
+            disabled_reason: string;
+            /**
+             * Account
+             * @default
+             */
+            account: string;
+            /** Fetched At */
+            fetched_at: string | null;
+            /**
+             * Total Threads
+             * @default 0
+             */
+            total_threads: number;
+            /**
+             * Groups
+             * @default []
+             */
+            groups: components["schemas"]["MailGroupRead"][];
+        };
+        /** MailMessageRead */
+        MailMessageRead: {
+            /** Uid */
+            uid: string;
+            /** Who */
+            who: string;
+            /** From Me */
+            from_me: boolean;
+            /**
+             * When
+             * Format: date-time
+             */
+            when: string;
+            /** Body */
+            body: string;
+        };
+        /** MailThreadDetail */
+        MailThreadDetail: {
+            /** Id */
+            id: string;
+            /** Subject */
+            subject: string;
+            /** Parties */
+            parties: string;
+            bucket: components["schemas"]["MailBucket"];
+            /** Reason */
+            reason: string;
+            /** Message Count */
+            message_count: number;
+            /**
+             * Summary
+             * @default
+             */
+            summary?: string;
+            /** Messages */
+            messages: components["schemas"]["MailMessageRead"][];
+        };
+        /** MailThreadRead */
+        MailThreadRead: {
+            /** Id */
+            id: string;
+            /** Subject */
+            subject: string;
+            /** From Name */
+            from_name: string;
+            /**
+             * When
+             * Format: date-time
+             */
+            when: string;
+            /** Message Count */
+            message_count: number;
+            /** Unread */
+            unread: boolean;
+            bucket: components["schemas"]["MailBucket"];
+            /** Reason */
+            reason: string;
+        };
         /** MarkedRead */
         MarkedRead: {
             /** Marked */
@@ -2630,7 +2798,7 @@ export interface components {
          * NotificationKind
          * @enum {string}
          */
-        NotificationKind: "task_due" | "academic_deadline" | "followup_nudge" | "daily_brief" | "held";
+        NotificationKind: "task_due" | "academic_deadline" | "thread_quiet" | "contact_cold" | "daily_brief" | "held";
         /** NotificationRead */
         NotificationRead: {
             /** Id */
@@ -2808,6 +2976,13 @@ export interface components {
         Page_ProjectRead_: {
             /** Items */
             items: components["schemas"]["ProjectRead"][];
+            /** Total */
+            total: number;
+        };
+        /** Page[SettlementRead] */
+        Page_SettlementRead_: {
+            /** Items */
+            items: components["schemas"]["SettlementRead"][];
             /** Total */
             total: number;
         };
@@ -3101,6 +3276,9 @@ export interface components {
             held_approval_id: number | null;
             /** Aborted */
             aborted: boolean;
+            source: components["schemas"]["ChatSource"];
+            /** Spoken Text */
+            spoken_text: string;
         };
         /** SearchHit */
         SearchHit: {
@@ -3114,6 +3292,63 @@ export interface components {
             path: string;
             /** Dot */
             dot: string;
+        };
+        /** SettlementCreate */
+        SettlementCreate: {
+            /** Person Id */
+            person_id: number;
+            /** Amount */
+            amount: number | string;
+            direction: components["schemas"]["SettlementDirection"];
+            /** Occurred At */
+            occurred_at?: string | null;
+            /**
+             * Note
+             * @default
+             */
+            note?: string;
+            /** Account Id */
+            account_id?: number | null;
+            /** Allocations */
+            allocations?: components["schemas"]["AllocationIn"][] | null;
+        };
+        /**
+         * SettlementDirection
+         * @enum {string}
+         */
+        SettlementDirection: "they_paid_me" | "i_paid_them";
+        /** SettlementRead */
+        SettlementRead: {
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Person Id */
+            person_id: number;
+            /** Amount */
+            amount: string;
+            direction: components["schemas"]["SettlementDirection"];
+            /** Occurred At */
+            occurred_at: string | null;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /** Account Id */
+            account_id: number | null;
+            /** Person Name */
+            person_name: string;
+            /** Allocated */
+            allocated: string;
         };
         /** SharedMoneyRow */
         SharedMoneyRow: {
@@ -3130,8 +3365,10 @@ export interface components {
             occurred_at: string;
             /** Amount */
             amount: number;
-            /** Settled At */
-            settled_at: string | null;
+            /** Allocated */
+            allocated: string;
+            /** Settled */
+            settled: boolean;
         };
         /** SpendRow */
         SpendRow: {
@@ -3161,8 +3398,10 @@ export interface components {
             person_name: string;
             /** Share Amount */
             share_amount: string;
-            /** Settled At */
-            settled_at: string | null;
+            /** Allocated */
+            allocated: string;
+            /** Settled */
+            settled: boolean;
         };
         /** TaskCreate */
         TaskCreate: {
@@ -3301,6 +3540,8 @@ export interface components {
         TransactionCreate: {
             /** Account Id */
             account_id: number;
+            /** To Account Id */
+            to_account_id?: number | null;
             /** Category Id */
             category_id?: number | null;
             /** @default expense */
@@ -3348,6 +3589,8 @@ export interface components {
             updated_at: string;
             /** Account Id */
             account_id: number;
+            /** To Account Id */
+            to_account_id: number | null;
             /** Category Id */
             category_id: number | null;
             /** @default expense */
@@ -3375,6 +3618,8 @@ export interface components {
             category_name: string | null;
             /** Account Name */
             account_name: string;
+            /** To Account Name */
+            to_account_name: string | null;
             /** Splits */
             splits: components["schemas"]["SplitRead"][];
         };
@@ -3382,6 +3627,8 @@ export interface components {
         TransactionUpdate: {
             /** Account Id */
             account_id?: number | null;
+            /** To Account Id */
+            to_account_id?: number | null;
             /** Category Id */
             category_id?: number | null;
             kind?: components["schemas"]["TransactionKind"] | null;
@@ -6293,6 +6540,7 @@ export interface operations {
             query?: {
                 account_id?: number | null;
                 category_id?: number | null;
+                kind?: components["schemas"]["TransactionKind"] | null;
                 month?: string | null;
                 limit?: number;
                 offset?: number;
@@ -6548,13 +6796,11 @@ export interface operations {
             };
         };
     };
-    splits_settle: {
+    finance_balances: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                split_id: number;
-            };
+            path?: never;
             cookie?: {
                 enola_session?: string | null;
             };
@@ -6567,7 +6813,95 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SplitRead"];
+                    "application/json": components["schemas"]["OwedRow"][];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    settlements_list: {
+        parameters: {
+            query?: {
+                person_id?: number | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                enola_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_SettlementRead_"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    settlements_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                enola_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettlementCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettlementRead"];
                 };
             };
             /** @description Client Error */
@@ -8500,6 +8834,90 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MarkedRead"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    email_threads: {
+        parameters: {
+            query?: {
+                refresh?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                enola_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MailInboxRead"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    email_thread: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: {
+                enola_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MailThreadDetail"];
                 };
             };
             /** @description Client Error */

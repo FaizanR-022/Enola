@@ -16,6 +16,20 @@
   background: transparent;
 }
 
+/* Demoted: a step smaller and quieter than the primary region. */
+.quiet {
+  font-size: var(--fs-12);
+  color: var(--tx2);
+}
+.quiet .row {
+  padding-top: var(--sp-3);
+  padding-bottom: var(--sp-3);
+  font-size: var(--fs-12);
+}
+.quiet .body {
+  gap: var(--sp-4);
+}
+
 .edge-held {
   border-left: 2px solid var(--oc);
 }
@@ -78,8 +92,9 @@
   border-bottom: 1px solid var(--line);
   min-width: 0;
 }
+/* Keep the border, hide it: rows stay the same height wherever they sit. */
 .row:last-child {
-  border-bottom: none;
+  border-bottom-color: transparent;
 }
 .align-center {
   align-items: center;

@@ -6,8 +6,8 @@ import { Button, EmptyState, Field, Input, Mono, QueryState, ScreenHeader, Sheet
 import { Screen } from "./Screen";
 import styles from "./Memory.module.css";
 
-function confidenceTone(fact: MemoryFact): "accent" | "soft" | "held" {
-  return fact.confidence > 80 ? "accent" : fact.confidence > 60 ? "soft" : "held";
+function confidenceTone(fact: MemoryFact): "accent" | "soft" | "low" {
+  return fact.confidence > 80 ? "accent" : fact.confidence > 60 ? "soft" : "low";
 }
 
 function FactRow({ fact }: { fact: MemoryFact }) {

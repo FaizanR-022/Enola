@@ -4,9 +4,9 @@ import { agoLabel } from "@/lib/format";
 import { Avatar, Badge, CardRow, Mono } from "@/ui";
 import styles from "./PersonRow.module.css";
 
-function lastTone(person: Person): "ok" | "held" | "danger" | "soft" {
-  if (person.days_since_contact === null) return "held";
-  if (person.going_cold) return person.days_since_contact > 80 ? "danger" : "held";
+function lastTone(person: Person): "ok" | "danger" | "soft" | "muted" {
+  if (person.going_cold) return "danger";
+  if (person.days_since_contact === null) return "muted";
   return person.days_since_contact <= 1 ? "ok" : "soft";
 }
 

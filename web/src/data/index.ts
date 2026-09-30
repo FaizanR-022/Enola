@@ -110,7 +110,7 @@ export function useChatHistory(threadId: string) {
 export function useSendChat(threadId: string) {
   const invalidate = useInvalidateAgentState();
   return useMutation({
-    mutationFn: ({ text, scope }: { text: string; scope: string }) => unwrap(api.POST("/api/chat", { body: { text, thread_id: threadId, scope } })),
+    mutationFn: ({ text, scope, source }: { text: string; scope: string; source: Schemas["ChatSource"] }) => unwrap(api.POST("/api/chat", { body: { text, thread_id: threadId, scope, source } })),
     onSettled: invalidate,
   });
 }
@@ -262,4 +262,175 @@ export function useMemoryMutations() {
   const restore = useMutation({ mutationFn: (id: number) => unwrap(api.POST("/api/memory/{fact_id}/restore", { params: { path: { fact_id: id } } })), onSettled: invalidate });
   const remove = useMutation({ mutationFn: (id: number) => api.DELETE("/api/memory/{item_id}", { params: { path: { item_id: id } } }), onSettled: invalidate });
   return { create, update, forget, restore, remove };
+}
+
+// ---- projects (a registry, not a code browser) ---------------------------------
+
+export type Project = Schemas["ProjectRead"];
+export type ProjectCreate = Schemas["ProjectCreate"];
+export type ProjectUpdate = Schemas["ProjectUpdate"];
+
+export function useProjects(status?: Schemas["ProjectStatus"]) {
+  return useQuery({ queryKey: keys.projects(status), queryFn: () => unwrap(api.GET("/api/projects", { params: { query: status ? { status } : {} } })) });
+}
+
+export function useProjectMutations() {
+  const qc = useQueryClient();
+  const invalidate = () => void qc.invalidateQueries({ queryKey: ["projects"] });
+  const create = useMutation({ mutationFn: (body: ProjectCreate) => unwrap(api.POST("/api/projects", { body })), onSettled: invalidate });
+  const update = useMutation({ mutationFn: ({ id, body }: { id: number; body: ProjectUpdate }) => unwrap(api.PATCH("/api/projects/{item_id}", { params: { path: { item_id: id } }, body })), onSettled: invalidate });
+  const remove = useMutation({ mutationFn: (id: number) => api.DELETE("/api/projects/{item_id}", { params: { path: { item_id: id } } }), onSettled: invalidate });
+  return { create, update, remove };
+}
+
+// ---- self-learning -------------------------------------------------------------
+
+export type LearningGoal = Schemas["LearningGoalRead"];
+export type LearningGoalCreate = Schemas["LearningGoalCreate"];
+export type LearningGoalUpdate = Schemas["LearningGoalUpdate"];
+export type LearningResource = Schemas["LearningResourceRead"];
+
+export function useLearningGoals(state?: Schemas["LearningGoalState"]) {
+  return useQuery({ queryKey: keys.learning(state), queryFn: () => unwrap(api.GET("/api/learning-goals", { params: { query: state ? { state } : {} } })) });
+}
+
+export function useLearningMutations() {
+  const qc = useQueryClient();
+  const invalidate = () => void qc.invalidateQueries({ queryKey: ["learning"] });
+  const create = useMutation({ mutationFn: (body: LearningGoalCreate) => unwrap(api.POST("/api/learning-goals", { body })), onSettled: invalidate });
+  const update = useMutation({ mutationFn: ({ id, body }: { id: number; body: LearningGoalUpdate }) => unwrap(api.PATCH("/api/learning-goals/{item_id}", { params: { path: { item_id: id } }, body })), onSettled: invalidate });
+  const remove = useMutation({ mutationFn: (id: number) => api.DELETE("/api/learning-goals/{item_id}", { params: { path: { item_id: id } } }), onSettled: invalidate });
+  return { create, update, remove };
+}
+
+// ---- academics -----------------------------------------------------------------
+
+export type Course = Schemas["CourseRead"];
+export type CourseCreate = Schemas["CourseCreate"];
+export type CourseUpdate = Schemas["CourseUpdate"];
+export type Assessment = Schemas["AssessmentRead"];
+export type AssessmentCreate = Schemas["AssessmentCreate"];
+export type AssessmentUpdate = Schemas["AssessmentUpdate"];
+export type FypMilestone = Schemas["FypMilestoneRead"];
+export type FypMilestoneCreate = Schemas["FypMilestoneCreate"];
+export type FypMilestoneUpdate = Schemas["FypMilestoneUpdate"];
+export type EnolaDocument = Schemas["DocumentRead"];
+
+/** A course's documents and its scoped chat share one scope string. One definition,
+ *  so the chat thread and the material list can never drift apart. */
+export function courseScope(courseId: number): string {
+  return `course:${courseId}`;
+}
+
+export function useCourses(term?: string) {
+  return useQuery({
+    queryKey: keys.courses(term),
+    queryFn: () => unwrap(api.GET("/api/courses", { params: { query: term ? { term } : {} } })),
+  });
+}
+
+export function useAssessments(courseId?: number) {
+  return useQuery({
+    queryKey: keys.assessments(courseId ? String(courseId) : undefined),
+    queryFn: () => unwrap(api.GET("/api/assessments", { params: { query: courseId ? { course_id: courseId } : {} } })),
+  });
+}
+
+export function useFypMilestones(courseId?: number) {
+  return useQuery({
+    queryKey: keys.fyp(courseId ? String(courseId) : undefined),
+    queryFn: () => unwrap(api.GET("/api/fyp-milestones", { params: { query: courseId ? { course_id: courseId } : {} } })),
+  });
+}
+
+export function useDocuments(scope?: string) {
+  return useQuery({
+    queryKey: keys.documents(scope),
+    queryFn: () => unwrap(api.GET("/api/documents", { params: { query: scope ? { scope } : {} } })),
+    enabled: scope !== undefined,
+  });
+}
+
+export function useAcademicsMutations() {
+  const qc = useQueryClient();
+  // Assessments write through to tasks server-side, so the dashboard moves too.
+  const invalidate = () => {
+    for (const key of [["courses"], ["assessments"], ["fyp"], ["tasks"], keys.dashboard]) {
+      void qc.invalidateQueries({ queryKey: key });
+    }
+  };
+  const createCourse = useMutation({ mutationFn: (body: CourseCreate) => unwrap(api.POST("/api/courses", { body })), onSettled: invalidate });
+  const updateCourse = useMutation({ mutationFn: ({ id, body }: { id: number; body: CourseUpdate }) => unwrap(api.PATCH("/api/courses/{item_id}", { params: { path: { item_id: id } }, body })), onSettled: invalidate });
+  const removeCourse = useMutation({ mutationFn: (id: number) => api.DELETE("/api/courses/{item_id}", { params: { path: { item_id: id } } }), onSettled: invalidate });
+  const createAssessment = useMutation({ mutationFn: (body: AssessmentCreate) => unwrap(api.POST("/api/assessments", { body })), onSettled: invalidate });
+  const updateAssessment = useMutation({ mutationFn: ({ id, body }: { id: number; body: AssessmentUpdate }) => unwrap(api.PATCH("/api/assessments/{item_id}", { params: { path: { item_id: id } }, body })), onSettled: invalidate });
+  const removeAssessment = useMutation({ mutationFn: (id: number) => api.DELETE("/api/assessments/{item_id}", { params: { path: { item_id: id } } }), onSettled: invalidate });
+  const createMilestone = useMutation({ mutationFn: (body: FypMilestoneCreate) => unwrap(api.POST("/api/fyp-milestones", { body })), onSettled: invalidate });
+  const updateMilestone = useMutation({ mutationFn: ({ id, body }: { id: number; body: FypMilestoneUpdate }) => unwrap(api.PATCH("/api/fyp-milestones/{item_id}", { params: { path: { item_id: id } }, body })), onSettled: invalidate });
+  const removeMilestone = useMutation({ mutationFn: (id: number) => api.DELETE("/api/fyp-milestones/{item_id}", { params: { path: { item_id: id } } }), onSettled: invalidate });
+  return { createCourse, updateCourse, removeCourse, createAssessment, updateAssessment, removeAssessment, createMilestone, updateMilestone, removeMilestone };
+}
+
+export function useDocumentMutations() {
+  const qc = useQueryClient();
+  const invalidate = () => {
+    void qc.invalidateQueries({ queryKey: ["documents"] });
+    void qc.invalidateQueries({ queryKey: ["courses"] });
+  };
+  /** Multipart: the generated client would JSON-encode the body, so hand the FormData
+   *  through untouched and let the browser set the boundary. */
+  const upload = useMutation({
+    mutationFn: ({ file, entityId }: { file: File; entityId: number }) => {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("entity_type", "course");
+      form.append("entity_id", String(entityId));
+      return unwrap(api.POST("/api/documents", { body: form as never, bodySerializer: (b: unknown) => b as FormData }));
+    },
+    onSettled: invalidate,
+  });
+  const remove = useMutation({
+    mutationFn: (id: number) => api.DELETE("/api/documents/{document_id}", { params: { path: { document_id: id } } }),
+    onSettled: invalidate,
+  });
+  return { upload, remove };
+}
+
+// ---- email ---------------------------------------------------------------------
+
+export type MailInbox = Schemas["MailInboxRead"];
+export type MailGroup = Schemas["MailGroupRead"];
+export type MailThread = Schemas["MailThreadRead"];
+export type MailThreadDetail = Schemas["MailThreadDetail"];
+
+/** Reading the inbox is an IMAP round trip, so the server caches it. Refetching on
+ *  window focus would spend that round trip for nothing. */
+export function useInbox() {
+  return useQuery({
+    queryKey: keys.email,
+    queryFn: () => unwrap(api.GET("/api/email/threads", { params: { query: {} } })),
+    refetchOnWindowFocus: false,
+    staleTime: 120_000,
+  });
+}
+
+export function useRefreshInbox() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => unwrap(api.GET("/api/email/threads", { params: { query: { refresh: true } } })),
+    onSuccess: (data) => {
+      qc.setQueryData(keys.email, data);
+      void qc.invalidateQueries({ queryKey: ["email"] });
+    },
+  });
+}
+
+export function useEmailThread(id: string | null) {
+  return useQuery({
+    queryKey: keys.emailThread(id ?? ""),
+    queryFn: () => unwrap(api.GET("/api/email/threads/{item_id}", { params: { path: { item_id: id ?? "" } } })),
+    enabled: Boolean(id),
+    refetchOnWindowFocus: false,
+    staleTime: 120_000,
+  });
 }

@@ -67,6 +67,11 @@
   min-width: 200px;
 }
 .nextWhen {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.nextWhenInput {
   width: 210px;
 }
 .posting {

@@ -42,3 +42,20 @@
 .groupLabel {
   padding: var(--sp-3) 3px;
 }
+
+/* Optional, and deliberately quiet: the sentence handles most dates, this is for the
+   ones it cannot say. Widens on focus so the value is readable while you set it. */
+.quickDate {
+  width: 26px;
+  flex: none;
+  color: var(--tx3);
+  cursor: pointer;
+  transition: width 120ms ease;
+}
+
+.quickDate:focus,
+.quickDate:hover,
+.quickDateSet {
+  width: 170px;
+  color: var(--tx2);
+}

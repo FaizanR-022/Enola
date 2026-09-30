@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ReactNode } from "react";
+import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
 import { cx } from "@/lib/cx";
 import { Mono } from "./Mono";
 import styles from "./Card.module.css";
@@ -17,12 +17,14 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, "title">
   flush?: boolean | undefined;
   dashed?: boolean | undefined;
   tone?: "raised" | "flat" | undefined;
+  /** Demoted a step: smaller type, --tx2, tighter rows. For everything that is not the primary region. */
+  quiet?: boolean | undefined;
 }
 
-export function Card({ title, meta, note, edge = "none", flush = false, dashed = false, tone = "raised", className, children, ...rest }: CardProps) {
+export function Card({ title, meta, note, edge = "none", flush = false, dashed = false, tone = "raised", quiet = false, className, children, ...rest }: CardProps) {
   return (
     <section
-      className={cx(styles["card"], styles[`edge-${edge}`], dashed && styles["dashed"], tone === "flat" && styles["flat"], className)}
+      className={cx(styles["card"], styles[`edge-${edge}`], dashed && styles["dashed"], tone === "flat" && styles["flat"], quiet && styles["quiet"], className)}
       {...rest}
     >
       {(title || meta) && (
@@ -45,9 +47,10 @@ export interface CardRowProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 /** A bordered row inside a flush Card. Clickable when `interactive`. */
-export function CardRow({ interactive = false, align = "center", muted = false, className, children, onClick, ...rest }: CardRowProps) {
+export const CardRow = forwardRef<HTMLDivElement, CardRowProps>(function CardRow({ interactive = false, align = "center", muted = false, className, children, onClick, ...rest }, ref) {
   return (
     <div
+      ref={ref}
       className={cx(styles["row"], styles[`align-${align}`], interactive && styles["interactive"], muted && styles["muted"], className)}
       role={interactive ? "button" : undefined}
       tabIndex={interactive ? 0 : undefined}
@@ -67,4 +70,4 @@ export function CardRow({ interactive = false, align = "center", muted = false, 
       {children}
     </div>
   );
-}
+});

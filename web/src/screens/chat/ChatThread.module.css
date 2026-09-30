@@ -179,3 +179,101 @@
     padding: var(--sp-5) var(--sp-7) var(--sp-6);
   }
 }
+.mic,
+.stop {
+  flex: none;
+  min-width: 30px;
+  min-height: 30px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line2);
+  color: var(--tx2);
+  font-size: var(--fs-13);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.mic:disabled {
+  opacity: 0.5;
+}
+.listening {
+  border-color: var(--rd);
+  color: var(--rd);
+  animation: pulse 1s ease-in-out infinite;
+}
+.stop {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.noMic {
+  flex: none;
+  opacity: 0.7;
+  cursor: help;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* What Enola did: present but quiet. It should read as a margin note, not a message. */
+.activity {
+  margin: var(--sp-2) 0;
+}
+
+.activityLine {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: var(--sp-2) var(--sp-3);
+  background: none;
+  border: 0;
+  border-radius: var(--r-2);
+  color: var(--tx3);
+  font-size: var(--fs-12);
+  text-align: left;
+  cursor: pointer;
+}
+
+.activityLine:hover {
+  background: var(--s1);
+  color: var(--tx2);
+}
+
+.activityDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--line2);
+  flex: none;
+}
+
+.activityText {
+  flex: 1;
+  min-width: 0;
+}
+
+.activityDetail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-6);
+}
+
+.activityOutput {
+  margin: var(--sp-2) 0 0;
+  padding: var(--sp-3);
+  background: var(--s1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  color: var(--tx2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-11);
+  line-height: var(--lh-body);
+  white-space: pre-wrap;
+  overflow-x: auto;
+  max-height: 240px;
+}

@@ -31,4 +31,12 @@ export const keys = {
   chat: (threadId: string) => ["chat", threadId] as const,
   notifications: ["notifications", "badge"] as const,
   search: (q: string) => ["search", q] as const,
+  projects: (filter?: string) => ["projects", filter ?? "all"] as const,
+  learning: (filter?: string) => ["learning", filter ?? "all"] as const,
+  courses: (filter?: string) => ["courses", filter ?? "all"] as const,
+  assessments: (filter?: string) => ["assessments", filter ?? "all"] as const,
+  fyp: (filter?: string) => ["fyp", filter ?? "all"] as const,
+  documents: (filter?: string) => ["documents", filter ?? "all"] as const,
+  email: ["email"] as const,
+  emailThread: (id: string) => ["email", id] as const,
 };

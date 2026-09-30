@@ -1,11 +1,12 @@
 import { useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useTaskMutations, useTasks, type Task } from "@/data";
 import { cx } from "@/lib/cx";
-import { isoAt, parseDate } from "@/lib/format";
+import { dateLabel, fromDatetimeLocal, isoAt, parseDate } from "@/lib/format";
 import { useShell, useFinishBoot, useHeaderMeta } from "@/shell/ShellState";
 import { Card, EmptyState, Input, Mono, QueryState, ScreenHeader } from "@/ui";
 import { Screen } from "./Screen";
 import { TaskRow } from "./shared/TaskRow";
+import { completeWithUndo } from "./shared/completeWithUndo";
 import styles from "./Tasks.module.css";
 
 type View = "daily" | "weekly";
@@ -53,26 +54,44 @@ function groupTasks(tasks: Task[], view: View, now = new Date()): Group[] {
   ];
   if (view === "weekly") groups.push({ label: "Later", items: later }, { label: "No date", items: undated });
   else groups.push({ label: "No date", items: undated });
+  // Newest completion first, so the task you just ticked is the one you see.
+  done.sort((a, b) => (b.completed_at ?? "").localeCompare(a.completed_at ?? ""));
   groups.push({ label: "Done", items: done.slice(0, view === "weekly" ? 20 : 5) });
   return groups.filter((g) => g.items.length > 0);
 }
 
-/** "tomorrow", "today", "friday", "in 3 days" at the end of a quick-add line set the due date. */
+/** A date at the end of a quick-add line sets the due date.
+ *
+ *  Forward: "today", "tomorrow", "in 3 days", "friday", "next friday".
+ *  Backward: "yesterday", "3 days ago", "last friday" — a real backlog is mostly
+ *  past tense, and without these everything you enter lands on today.
+ */
 function parseQuickAdd(raw: string): { title: string; due_at: string | null } {
   const text = raw.trim();
   const lower = text.toLowerCase();
+  const NAMES = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
+  const weekdayBack = (name: string): number => {
+    const target = NAMES.indexOf(name);
+    const diff = (new Date().getDay() - target + 7) % 7;
+    return -(diff === 0 ? 7 : diff);
+  };
+  const weekdayForward = (name: string): number => {
+    const target = NAMES.indexOf(name);
+    const diff = (target - new Date().getDay() + 7) % 7;
+    return diff === 0 ? 7 : diff;
+  };
+
+  // Order matters: "last friday" must be tested before the bare weekday rule, which
+  // would otherwise match "friday" and push it into next week.
   const rules: Array<[RegExp, (m: RegExpMatchArray) => number]> = [
-    [/\b(today)\b$/, () => 0],
-    [/\b(tomorrow)\b$/, () => 1],
+    [/\blast (monday|tuesday|wednesday|thursday|friday|saturday|sunday)$/, (m) => weekdayBack(m[1] ?? "")],
+    [/\b(\d+) days? ago$/, (m) => -Number(m[1])],
+    [/\byesterday$/, () => -1],
+    [/\btoday$/, () => 0],
+    [/\btomorrow$/, () => 1],
     [/\bin (\d+) days?$/, (m) => Number(m[1])],
-    [/\b(next )?(monday|tuesday|wednesday|thursday|friday|saturday|sunday)$/, (m) => {
-      const names = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-      const target = names.indexOf(m[2] ?? "");
-      const today = new Date().getDay();
-      let diff = (target - today + 7) % 7;
-      if (diff === 0) diff = 7;
-      return diff;
-    }],
+    [/\b(next )?(monday|tuesday|wednesday|thursday|friday|saturday|sunday)$/, (m) => weekdayForward(m[2] ?? "")],
   ];
   for (const [pattern, days] of rules) {
     const match = lower.match(pattern);
@@ -87,6 +106,9 @@ function parseQuickAdd(raw: string): { title: string; due_at: string | null } {
 export function Tasks() {
   const [view, setView] = useState<View>("daily");
   const [draft, setDraft] = useState("");
+  // For dates the sentence cannot express. Explicit beats inferred, so when this is
+  // set it overrides whatever the line ends with.
+  const [when, setWhen] = useState("");
   const tasks = useTasks();
   const mutations = useTaskMutations();
   const { say } = useShell();
@@ -99,18 +121,21 @@ export function Tasks() {
     event.preventDefault();
     if (!draft.trim()) return;
     const parsed = parseQuickAdd(draft);
+    const picked = fromDatetimeLocal(when);
+    const due = picked ?? parsed.due_at;
     mutations.create.mutate(
-      { title: parsed.title, due_at: parsed.due_at, links: [] },
+      { title: parsed.title, due_at: due, links: [] },
       {
         onSuccess: () => {
           setDraft("");
-          say(parsed.due_at ? "Added with a due date" : "Added");
+          setWhen("");
+          say(due ? `Added · due ${dateLabel(due)}` : "Added, no date");
         },
       },
     );
   };
 
-  const toggle = (task: Task) => mutations.setState.mutate({ id: task.id, state: task.state === "done" ? "open" : "done" });
+  const toggle = (task: Task) => completeWithUndo(task, mutations.setState.mutate, say);
 
   return (
     <Screen narrow>
@@ -132,9 +157,20 @@ export function Tasks() {
           bare
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="“email Bilal about the Turing referral tomorrow”"
+          placeholder="“submit the lab report yesterday” · “chase the referral friday”"
           aria-label="Add a task"
           className={styles["quickInput"]}
+          disabled={mutations.create.isPending}
+        />
+        <Input
+          type="datetime-local"
+          mono
+          bare
+          value={when}
+          onChange={(e) => setWhen(e.target.value)}
+          aria-label="Due date"
+          title="Optional. Overrides a date written in the line."
+          className={cx(styles["quickDate"], when && styles["quickDateSet"])}
           disabled={mutations.create.isPending}
         />
         <Mono className={styles["enter"]}>↵</Mono>

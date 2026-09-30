@@ -29,7 +29,14 @@
   --grd: #1c2a20;
   --rd: #cf7a66; /* overdue and destructive */
   --rdd: #33201b;
-  --paper-ink: #b98f52; /* Academics accent */
+  --paper-ink: #ad9a76; /* Academics accent: ink on paper, deliberately unsaturated so it never reads as ochre */
+
+  /* domain accents — one per screen, all distinct from ochre */
+  --ac-indigo: #8f9ff2; /* Jobs */
+  --ac-rose: #e49aab; /* People */
+  --ac-teal: #6cc5b7; /* Finance */
+  --ac-violet: #b49ce3; /* Projects */
+  --ac-amber: #b08968; /* Self-learning: amber-brown, unsaturated so it reads as brown, never gold */
 
   --accent: var(--cy);
   --shadow: 0 1px 0 rgba(255, 255, 255, 0.02), 0 8px 24px rgba(0, 0, 0, 0.35);
@@ -107,15 +114,43 @@
   --grd: #dcebe0;
   --rd: #a3452e;
   --rdd: #f5ddd6;
-  --paper-ink: #85600f;
+  --paper-ink: #5d4b2e;
+  --ac-indigo: #3d4db5;
+  --ac-rose: #a63f5c;
+  --ac-teal: #1d746a;
+  --ac-violet: #6a4cb0;
+  --ac-amber: #7d5a3c;
   --shadow: 0 1px 2px rgba(16, 20, 24, 0.06), 0 8px 24px rgba(16, 20, 24, 0.08);
   --shadow-float: 0 24px 60px rgba(16, 20, 24, 0.18);
   --scrim: rgba(16, 20, 24, 0.35);
 }
 
-/* Per-screen accent. The only token a screen may change. */
+/* Per-screen accent. The only token a screen may change. Dashboard and Chat keep
+   cyan (Enola itself); Memory and Log are deliberately neutral. */
+[data-screen="jobs"] {
+  --accent: var(--ac-indigo);
+}
+[data-screen="people"] {
+  --accent: var(--ac-rose);
+}
+[data-screen="tasks"] {
+  --accent: var(--gr);
+}
+[data-screen="finance"] {
+  --accent: var(--ac-teal);
+}
 [data-screen="academics"] {
   --accent: var(--paper-ink);
+}
+[data-screen="projects"] {
+  --accent: var(--ac-violet);
+}
+[data-screen="learning"] {
+  --accent: var(--ac-amber);
+}
+[data-screen="memory"],
+[data-screen="log"] {
+  --accent: var(--tx2);
 }
 
 /* Academics paper mode: the only full mode shift in the app. */

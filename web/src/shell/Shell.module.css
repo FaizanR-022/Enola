@@ -26,6 +26,10 @@
   overflow: auto;
   overscroll-behavior: contain;
 }
+/* Full-screen chat overlays the screen area and keeps the nav. */
+.railFull .content {
+  display: none;
+}
 
 @media (max-width: 759px) {
   .root {

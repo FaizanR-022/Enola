@@ -4,29 +4,30 @@ import { useApplications, useJobMutations, usePostings, type Application, type P
 import { errorMessage } from "@/lib/api";
 import { cx } from "@/lib/cx";
 import { ApplicationStage } from "@/lib/enums.generated";
-import { dueLabel, dueTone } from "@/lib/format";
+import { dueLabel } from "@/lib/format";
 import { useFinishBoot, useHeaderMeta, useShell } from "@/shell/ShellState";
 import { Badge, Button, Card, Dot, EmptyState, Field, Input, Mono, QueryState, ScreenHeader, Sheet } from "@/ui";
 import { Screen } from "./Screen";
+import { UrgencyDot, urgencyMono } from "./shared/UrgencyDot";
+import { urgencyOf, type Urgency } from "./shared/urgency";
 import styles from "./Jobs.module.css";
 
-const COLUMNS: ReadonlyArray<{ stage: Application["stage"]; label: string; dot: "muted" | "soft" | "accent" | "ok" | "danger" | "held" }> = [
+const COLUMNS: ReadonlyArray<{ stage: Application["stage"]; label: string; dot: "muted" | "soft" | "accent" | "ok" | "danger" }> = [
   { stage: ApplicationStage.SAVED, label: "Saved", dot: "muted" },
   { stage: ApplicationStage.APPLIED, label: "Applied", dot: "soft" },
   { stage: ApplicationStage.SCREENING, label: "Screening", dot: "accent" },
   { stage: ApplicationStage.INTERVIEW, label: "Interview", dot: "ok" },
-  { stage: ApplicationStage.OFFER, label: "Offer", dot: "held" },
+  { stage: ApplicationStage.OFFER, label: "Offer", dot: "accent" },
   { stage: ApplicationStage.CLOSED, label: "Closed", dot: "danger" },
 ];
 
-function nextLine(app: Application): { text: string; tone: "accent" | "held" | "danger" | "muted" | "ok" } {
-  if (app.stage === "closed") return { text: app.closed_reason || "Closed", tone: "muted" };
+function nextLine(app: Application): { text: string; urgency: Urgency | null } {
+  if (app.stage === "closed") return { text: app.closed_reason || "Closed", urgency: null };
   if (app.next_action) {
-    const tone = app.next_action_at ? (dueTone(app.next_action_at) === "danger" ? "danger" : dueTone(app.next_action_at) === "held" ? "held" : "accent") : "accent";
-    return { text: `${app.next_action}${app.next_action_at ? ` · ${dueLabel(app.next_action_at)}` : ""}`, tone };
+    return { text: `${app.next_action}${app.next_action_at ? ` · ${dueLabel(app.next_action_at)}` : ""}`, urgency: app.next_action_at ? urgencyOf(app.next_action_at) : "week" };
   }
-  if (app.days_quiet !== null && app.days_quiet !== undefined && app.days_quiet >= 5) return { text: `No reply · ${app.days_quiet} days`, tone: "muted" };
-  return { text: app.applied_at ? `Applied ${dueLabel(app.applied_at)}` : "Not applied yet", tone: "muted" };
+  if (app.days_quiet !== null && app.days_quiet !== undefined && app.days_quiet >= 5) return { text: `No reply · ${app.days_quiet} days`, urgency: "later" };
+  return { text: app.applied_at ? `Applied ${dueLabel(app.applied_at)}` : "Not applied yet", urgency: null };
 }
 
 function JobCard({ app }: { app: Application }) {
@@ -40,9 +41,12 @@ function JobCard({ app }: { app: Application }) {
         {app.location_label && <Badge>{app.location_label}</Badge>}
         {app.referral_person_name && <Badge tone="accent">ref · {app.referral_person_name.split(" ")[0]}</Badge>}
       </span>
-      <Mono size={11} tone={next.tone === "accent" ? "accent" : next.tone === "held" ? "held" : next.tone === "danger" ? "danger" : next.tone === "ok" ? "ok" : "muted"} className={styles["cardNext"]}>
-        {next.text}
-      </Mono>
+      <span className={styles["cardNext"]}>
+        {next.urgency && <UrgencyDot urgency={next.urgency} size={5} />}
+        <Mono size={11} tone={next.urgency ? urgencyMono(next.urgency) : "muted"} className={styles["cardNextText"]}>
+          {next.text}
+        </Mono>
+      </span>
     </button>
   );
 }

@@ -42,6 +42,11 @@
   line-height: 1.5;
 }
 
+.full {
+  width: 100%;
+  border-left: none;
+  background: var(--bg);
+}
 @media (max-width: 759px) {
   .rail {
     width: 100%;

@@ -6,6 +6,8 @@ import { dateLabel, dueLabel, fromDatetimeLocal, toDatetimeLocal } from "@/lib/f
 import { useFinishBoot, useHeaderMeta, useShell } from "@/shell/ShellState";
 import { Avatar, Badge, Button, Card, Dot, EmptyState, Field, Input, Mono, QueryState, Select } from "@/ui";
 import { Grid, Screen, Stack } from "./Screen";
+import { UrgencyDot, urgencyMono } from "./shared/UrgencyDot";
+import { urgencyOf } from "./shared/urgency";
 import styles from "./JobDetail.module.css";
 
 const STAGE_LABEL: Record<Application["stage"], string> = { saved: "Saved", applied: "Applied", screening: "Screening", interview: "Interview", offer: "Offer", closed: "Closed" };
@@ -83,7 +85,7 @@ function Body({ app }: { app: Application }) {
           </div>
         </div>
         <label className={styles["stage"]}>
-          <Dot tone={app.stage === "screening" ? "held" : app.stage === "interview" ? "ok" : app.stage === "closed" ? "danger" : "muted"} size={6} />
+          <Dot tone={app.stage === "screening" ? "accent" : app.stage === "interview" ? "ok" : app.stage === "closed" ? "danger" : "muted"} size={6} />
           <Select value={app.stage} onChange={(e) => setStage(e.target.value as Application["stage"])} aria-label="Stage" className={styles["stageSelect"]} disabled={mutations.updateApplication.isPending}>
             {Object.values(ApplicationStage).map((s) => (
               <option key={s} value={s}>
@@ -100,7 +102,7 @@ function Body({ app }: { app: Application }) {
             Next action
           </Mono>
           <Input value={nextAction} onChange={(e) => setNextAction(e.target.value)} placeholder="Screening call with Ayesha" className={styles["nextInput"]} autoFocus />
-          <Input type="datetime-local" value={nextAt} onChange={(e) => setNextAt(e.target.value)} mono className={styles["nextWhen"]} />
+          <Input type="datetime-local" value={nextAt} onChange={(e) => setNextAt(e.target.value)} mono className={styles["nextWhenInput"]} />
           <Button size="sm" variant="primary" type="submit" busy={mutations.updateApplication.isPending}>
             Save
           </Button>
@@ -115,9 +117,12 @@ function Body({ app }: { app: Application }) {
           </Mono>
           <span className={styles["nextText"]}>{app.next_action || "Nothing planned. Click to set one."}</span>
           {app.next_action_at && (
-            <Mono size={11} tone="soft">
-              {dueLabel(app.next_action_at)}
-            </Mono>
+            <span className={styles["nextWhen"]}>
+              <UrgencyDot due={app.next_action_at} size={6} />
+              <Mono size={11} tone={urgencyMono(urgencyOf(app.next_action_at))}>
+                {dueLabel(app.next_action_at)}
+              </Mono>
+            </span>
           )}
         </button>
       )}

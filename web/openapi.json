@@ -4980,6 +4980,22 @@
             }
           },
           {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TransactionKind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
             "name": "month",
             "in": "query",
             "required": false,
@@ -5415,21 +5431,114 @@
         }
       }
     },
-    "/api/splits/{split_id}/settle": {
-      "post": {
+    "/api/finance/balances": {
+      "get": {
         "tags": [
           "finance"
         ],
-        "summary": "Settle",
-        "operationId": "splits_settle",
+        "summary": "Balances",
+        "operationId": "finance_balances",
         "parameters": [
           {
-            "name": "split_id",
-            "in": "path",
-            "required": true,
+            "name": "enola_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Enola Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OwedRow"
+                  },
+                  "title": "Response Finance Balances"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Client Error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/api/settlements": {
+      "get": {
+        "tags": [
+          "settlements"
+        ],
+        "summary": "List Settlements",
+        "operationId": "settlements_list",
+        "parameters": [
+          {
+            "name": "person_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Person Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
             "schema": {
               "type": "integer",
-              "title": "Split Id"
+              "maximum": 500,
+              "minimum": 1,
+              "default": 200,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
             }
           },
           {
@@ -5455,7 +5564,74 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SplitRead"
+                  "$ref": "#/components/schemas/Page_SettlementRead_"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Client Error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Server Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "settlements"
+        ],
+        "summary": "Create Settlement",
+        "operationId": "settlements_create",
+        "parameters": [
+          {
+            "name": "enola_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Enola Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettlementCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettlementRead"
                 }
               }
             }
@@ -8866,6 +9042,143 @@
           }
         }
       }
+    },
+    "/api/email/threads": {
+      "get": {
+        "tags": [
+          "email"
+        ],
+        "summary": "List Threads",
+        "operationId": "email_threads",
+        "parameters": [
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Refresh"
+            }
+          },
+          {
+            "name": "enola_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Enola Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailInboxRead"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Client Error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/api/email/threads/{item_id}": {
+      "get": {
+        "tags": [
+          "email"
+        ],
+        "summary": "Get Thread",
+        "operationId": "email_thread",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          },
+          {
+            "name": "enola_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Enola Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailThreadDetail"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Client Error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Server Error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -9043,7 +9356,8 @@
           "rejected",
           "job_run",
           "memory",
-          "note"
+          "note",
+          "model_call"
         ],
         "title": "ActivityKind"
       },
@@ -9133,6 +9447,34 @@
         ],
         "title": "ActorSource",
         "description": "Who produced a record: the owner, Enola, or an ingested source."
+      },
+      "AllocationIn": {
+        "properties": {
+          "transaction_split_id": {
+            "type": "integer",
+            "title": "Transaction Split Id"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Amount"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "transaction_split_id",
+          "amount"
+        ],
+        "title": "AllocationIn"
       },
       "ApplicationCreate": {
         "properties": {
@@ -10391,6 +10733,10 @@
             "type": "string",
             "title": "Scope",
             "default": "everything"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ChatSource",
+            "default": "text"
           }
         },
         "type": "object",
@@ -10398,6 +10744,15 @@
           "text"
         ],
         "title": "ChatRequest"
+      },
+      "ChatSource": {
+        "type": "string",
+        "enum": [
+          "text",
+          "voice"
+        ],
+        "title": "ChatSource",
+        "description": "How a chat turn was initiated. Voice must never bypass the gate; the source is\nrecorded so a spoken turn's Held item is auditable as such."
       },
       "CompanyCreate": {
         "properties": {
@@ -11055,6 +11410,11 @@
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Total Spend"
           },
+          "total_income": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Income"
+          },
           "spend": {
             "items": {
               "$ref": "#/components/schemas/SpendRow"
@@ -11080,6 +11440,7 @@
         "required": [
           "month",
           "total_spend",
+          "total_income",
           "spend",
           "owed",
           "net_owed"
@@ -12366,6 +12727,230 @@
         ],
         "title": "LoginRequest"
       },
+      "MailBucket": {
+        "type": "string",
+        "enum": [
+          "needs_you",
+          "ongoing",
+          "worth_knowing"
+        ],
+        "title": "MailBucket"
+      },
+      "MailGroupRead": {
+        "properties": {
+          "bucket": {
+            "$ref": "#/components/schemas/MailBucket"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "threads": {
+            "items": {
+              "$ref": "#/components/schemas/MailThreadRead"
+            },
+            "type": "array",
+            "title": "Threads"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "bucket",
+          "label",
+          "threads"
+        ],
+        "title": "MailGroupRead"
+      },
+      "MailInboxRead": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "disabled_reason": {
+            "type": "string",
+            "title": "Disabled Reason",
+            "default": ""
+          },
+          "account": {
+            "type": "string",
+            "title": "Account",
+            "default": ""
+          },
+          "fetched_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fetched At"
+          },
+          "total_threads": {
+            "type": "integer",
+            "title": "Total Threads",
+            "default": 0
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/MailGroupRead"
+            },
+            "type": "array",
+            "title": "Groups",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "enabled",
+          "disabled_reason",
+          "account",
+          "fetched_at",
+          "total_threads",
+          "groups"
+        ],
+        "title": "MailInboxRead"
+      },
+      "MailMessageRead": {
+        "properties": {
+          "uid": {
+            "type": "string",
+            "title": "Uid"
+          },
+          "who": {
+            "type": "string",
+            "title": "Who"
+          },
+          "from_me": {
+            "type": "boolean",
+            "title": "From Me"
+          },
+          "when": {
+            "type": "string",
+            "format": "date-time",
+            "title": "When"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "uid",
+          "who",
+          "from_me",
+          "when",
+          "body"
+        ],
+        "title": "MailMessageRead"
+      },
+      "MailThreadDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "subject": {
+            "type": "string",
+            "title": "Subject"
+          },
+          "parties": {
+            "type": "string",
+            "title": "Parties"
+          },
+          "bucket": {
+            "$ref": "#/components/schemas/MailBucket"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "message_count": {
+            "type": "integer",
+            "title": "Message Count"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "default": ""
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/MailMessageRead"
+            },
+            "type": "array",
+            "title": "Messages"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "subject",
+          "parties",
+          "bucket",
+          "reason",
+          "message_count",
+          "messages"
+        ],
+        "title": "MailThreadDetail"
+      },
+      "MailThreadRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "subject": {
+            "type": "string",
+            "title": "Subject"
+          },
+          "from_name": {
+            "type": "string",
+            "title": "From Name"
+          },
+          "when": {
+            "type": "string",
+            "format": "date-time",
+            "title": "When"
+          },
+          "message_count": {
+            "type": "integer",
+            "title": "Message Count"
+          },
+          "unread": {
+            "type": "boolean",
+            "title": "Unread"
+          },
+          "bucket": {
+            "$ref": "#/components/schemas/MailBucket"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "subject",
+          "from_name",
+          "when",
+          "message_count",
+          "unread",
+          "bucket",
+          "reason"
+        ],
+        "title": "MailThreadRead"
+      },
       "MarkedRead": {
         "properties": {
           "marked": {
@@ -12623,7 +13208,8 @@
         "enum": [
           "task_due",
           "academic_deadline",
-          "followup_nudge",
+          "thread_quiet",
+          "contact_cold",
           "daily_brief",
           "held"
         ],
@@ -13166,6 +13752,27 @@
           "total"
         ],
         "title": "Page[ProjectRead]"
+      },
+      "Page_SettlementRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SettlementRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "Page[SettlementRead]"
       },
       "Page_TaskRead_": {
         "properties": {
@@ -13928,6 +14535,13 @@
           "aborted": {
             "type": "boolean",
             "title": "Aborted"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ChatSource"
+          },
+          "spoken_text": {
+            "type": "string",
+            "title": "Spoken Text"
           }
         },
         "type": "object",
@@ -13936,7 +14550,9 @@
           "thread_id",
           "messages",
           "held_approval_id",
-          "aborted"
+          "aborted",
+          "source",
+          "spoken_text"
         ],
         "title": "RunRead"
       },
@@ -13974,6 +14590,171 @@
         ],
         "title": "SearchHit"
       },
+      "SettlementCreate": {
+        "properties": {
+          "person_id": {
+            "type": "integer",
+            "title": "Person Id"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Amount"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/SettlementDirection"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": ""
+          },
+          "account_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Id"
+          },
+          "allocations": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/AllocationIn"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allocations"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "person_id",
+          "amount",
+          "direction"
+        ],
+        "title": "SettlementCreate"
+      },
+      "SettlementDirection": {
+        "type": "string",
+        "enum": [
+          "they_paid_me",
+          "i_paid_them"
+        ],
+        "title": "SettlementDirection"
+      },
+      "SettlementRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "person_id": {
+            "type": "integer",
+            "title": "Person Id"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Amount"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/SettlementDirection"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": ""
+          },
+          "account_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Id"
+          },
+          "person_name": {
+            "type": "string",
+            "title": "Person Name"
+          },
+          "allocated": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Allocated"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "person_id",
+          "amount",
+          "direction",
+          "occurred_at",
+          "note",
+          "account_id",
+          "person_name",
+          "allocated"
+        ],
+        "title": "SettlementRead"
+      },
       "SharedMoneyRow": {
         "properties": {
           "split_id": {
@@ -13997,17 +14778,14 @@
             "type": "number",
             "title": "Amount"
           },
-          "settled_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Settled At"
+          "allocated": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Allocated"
+          },
+          "settled": {
+            "type": "boolean",
+            "title": "Settled"
           }
         },
         "additionalProperties": false,
@@ -14018,7 +14796,8 @@
           "title",
           "occurred_at",
           "amount",
-          "settled_at"
+          "allocated",
+          "settled"
         ],
         "title": "SharedMoneyRow"
       },
@@ -14100,17 +14879,14 @@
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Share Amount"
           },
-          "settled_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Settled At"
+          "allocated": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Allocated"
+          },
+          "settled": {
+            "type": "boolean",
+            "title": "Settled"
           }
         },
         "additionalProperties": false,
@@ -14120,7 +14896,8 @@
           "person_id",
           "person_name",
           "share_amount",
-          "settled_at"
+          "allocated",
+          "settled"
         ],
         "title": "SplitRead"
       },
@@ -14497,6 +15274,17 @@
             "type": "integer",
             "title": "Account Id"
           },
+          "to_account_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Account Id"
+          },
           "category_id": {
             "anyOf": [
               {
@@ -14594,6 +15382,17 @@
             "type": "integer",
             "title": "Account Id"
           },
+          "to_account_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Account Id"
+          },
           "category_id": {
             "anyOf": [
               {
@@ -14650,6 +15449,17 @@
             "type": "string",
             "title": "Account Name"
           },
+          "to_account_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Account Name"
+          },
           "splits": {
             "items": {
               "$ref": "#/components/schemas/SplitRead"
@@ -14665,6 +15475,7 @@
           "created_at",
           "updated_at",
           "account_id",
+          "to_account_id",
           "category_id",
           "kind",
           "amount",
@@ -14674,6 +15485,7 @@
           "paid_by_me",
           "category_name",
           "account_name",
+          "to_account_name",
           "splits"
         ],
         "title": "TransactionRead"
@@ -14690,6 +15502,17 @@
               }
             ],
             "title": "Account Id"
+          },
+          "to_account_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Account Id"
           },
           "category_id": {
             "anyOf": [

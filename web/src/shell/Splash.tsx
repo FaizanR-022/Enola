@@ -12,17 +12,18 @@ function greeting(hour: number): string {
   return "Good evening";
 }
 
-/** Shown while the first screen loads. Click to skip. There is no timer: the bar
- *  moves when data arrives and the splash leaves the moment the dashboard is ready. */
+/** Shown while the first screen loads, for at least VITE_SPLASH_MIN_MS. Click to skip.
+ *  The bar is honest: it moves as data arrives, reaches full when the dashboard is
+ *  ready, and holds there for whatever is left of the minimum. */
 export function Splash() {
-  const { finishBoot } = useShell();
+  const { skipBoot, dataReady } = useShell();
   const owner = useOwner();
-  const stage = owner.isPending ? 0 : 1;
+  const stage = dataReady ? 2 : owner.isPending ? 0 : 1;
   const name = owner.data?.name;
-  const label = stage === 0 ? "restoring session" : "daily brief";
+  const label = stage === 0 ? "restoring session" : stage === 1 ? "daily brief" : "ready";
 
   return (
-    <button type="button" className={styles["splash"]} onClick={finishBoot} aria-label="Skip splash">
+    <button type="button" className={styles["splash"]} onClick={skipBoot} aria-label="Skip splash">
       <Mark size="lg" pulse />
       <div className={styles["word"]}>enola</div>
       <div className={styles["line"]}>

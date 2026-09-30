@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { cx } from "@/lib/cx";
+import { modKey } from "@/lib/platform";
 import { usePaletteSearch, type PaletteHit } from "@/lib/search";
 import { Dot, Mono, Sheet } from "@/ui";
 import { useShell } from "./ShellState";
@@ -12,7 +13,7 @@ interface Group {
   items: PaletteHit[];
 }
 
-/** ⌘K. Doubles as global search and "ask Enola": a question is handed to the chat. */
+/** The command palette. Doubles as global search and "ask Enola": a question is handed to the chat. */
 export function CommandPalette() {
   const { paletteOpen, closePalette, paletteInitialQuery } = useShell();
   const [query, setQuery] = useState("");
@@ -137,7 +138,7 @@ export function CommandPalette() {
         <div className={styles["foot"]}>
           <Mono>↑↓ move</Mono>
           <Mono>↵ open</Mono>
-          <Mono>⌘↵ ask instead</Mono>
+          <Mono>{modKey}↵ ask instead</Mono>
         </div>
       </div>
     </Sheet>

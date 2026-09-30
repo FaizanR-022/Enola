@@ -69,3 +69,39 @@
     width: 100%;
   }
 }
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+/* Every tag already in use. Tapping beats typing, and it stops "uni" and "university"
+   becoming two filters that each hold half your contacts. */
+.tagPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: calc(var(--sp-4) * -1);
+}
+
+.tagChip {
+  padding: var(--sp-1) var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: none;
+  color: var(--tx3);
+  font-size: var(--fs-11);
+  cursor: pointer;
+}
+
+.tagChip:hover {
+  border-color: var(--line2);
+  color: var(--tx2);
+}
+
+.tagChipOn {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--s1);
+}

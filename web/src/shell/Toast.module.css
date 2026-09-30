@@ -15,6 +15,7 @@
   animation: rise 0.2s ease;
   max-width: calc(100% - 40px);
   font-size: var(--fs-12);
+  flex-wrap: wrap;
 }
 @media (max-width: 759px) {
   .toast {

@@ -69,8 +69,8 @@
 .fill-soft {
   background: var(--tx2);
 }
-.fill-held {
-  background: var(--oc);
+.fill-low {
+  background: var(--tx3);
 }
 .pct {
   width: 32px;

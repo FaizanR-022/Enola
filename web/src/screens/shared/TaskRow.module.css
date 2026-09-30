@@ -1,6 +1,18 @@
 .row {
   gap: var(--sp-5);
+  border-left: 2px solid transparent;
 }
+/* Urgency by weight: overdue gets the red edge; later is dimmed. */
+.u-overdue {
+  border-left-color: var(--rd);
+}
+.u-later {
+  opacity: 0.72;
+}
+.armed {
+  background: var(--s2);
+}
+
 .check {
   width: 13px;
   height: 13px;
@@ -11,15 +23,17 @@
   place-items: center;
   padding: 0;
   cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
 }
-.check-danger {
+.u-overdue .check {
+  border-color: var(--rd);
+  background: var(--rdd);
+}
+.u-today .check {
   border-color: var(--rd);
 }
-.check-held {
-  border-color: var(--oc);
-}
-.checked {
-  border-color: var(--gr);
+.u-week .check {
+  border-color: var(--tx2);
 }
 .checkFill {
   width: 5px;
@@ -27,9 +41,21 @@
   border-radius: 1px;
   background: transparent;
 }
+/* Armed: same box, filled green. No size change, so the row never moves. */
+.confirm {
+  border-color: var(--gr);
+  background: var(--gr);
+}
+.confirm .checkFill {
+  background: var(--bg);
+}
+.checked {
+  border-color: var(--gr);
+}
 .checked .checkFill {
   background: var(--gr);
 }
+
 .title {
   flex: 1;
   min-width: 0;
@@ -41,6 +67,9 @@
 .done .title {
   color: var(--tx3);
   text-decoration: line-through;
+}
+.armedHint {
+  flex: none;
 }
 .due {
   width: 56px;

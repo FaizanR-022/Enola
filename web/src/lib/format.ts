@@ -26,15 +26,15 @@ export function dueLabel(value: string | null | undefined, now = new Date()): st
   return date.toLocaleDateString(undefined, { day: "numeric", month: "short" });
 }
 
-export type DueTone = "danger" | "held" | "soft" | "muted";
+export type DueTone = "danger" | "soft" | "muted";
 
-/** Overdue is clay, today is ochre, this week is soft, later is muted. */
+/** Overdue and today are clay (the dot carries the weight), this week is soft, later is muted. */
 export function dueTone(value: string | null | undefined, now = new Date()): DueTone {
   const date = parseDate(value);
   if (!date) return "muted";
   const days = Math.round((startOfDay(date).getTime() - startOfDay(now).getTime()) / DAY_MS);
   if (days < 0) return "danger";
-  if (days === 0) return "held";
+  if (days === 0) return "danger";
   if (days < 7) return "soft";
   return "muted";
 }

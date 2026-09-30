@@ -41,6 +41,9 @@
 .stage1 {
   width: 70%;
 }
+.stage2 {
+  width: 100%;
+}
 .label {
   margin-top: var(--sp-6);
   letter-spacing: 0.06em;

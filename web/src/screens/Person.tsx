@@ -1,10 +1,12 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { usePeopleMutations, usePerson, usePersonInteractions, usePersonMoney, useTaskMutations, useTasks, type Person as PersonType } from "@/data";
+import { usePeople, usePeopleMutations, usePerson, usePersonInteractions, usePersonMoney, useTaskMutations, useTasks, type Person as PersonType } from "@/data";
+import { errorMessage } from "@/lib/api";
+import { cx } from "@/lib/cx";
 import { InteractionKind } from "@/lib/enums.generated";
 import { agoLabel, dateLabel, signedPkr } from "@/lib/format";
 import { useFinishBoot, useHeaderMeta, useShell } from "@/shell/ShellState";
-import { Avatar, Badge, Button, Card, CardRow, EmptyState, Input, Mono, QueryState, Select, TextArea } from "@/ui";
+import { Avatar, Badge, Button, Card, CardRow, EmptyState, Field, Input, Mono, QueryState, Select, Sheet, TextArea } from "@/ui";
 import { Grid, Screen } from "./Screen";
 import { TaskRow } from "./shared/TaskRow";
 import styles from "./Person.module.css";
@@ -36,6 +38,7 @@ function PersonBody({ person }: { person: PersonType }) {
   const money = usePersonMoney(person.id);
   const tasks = useTasks("open", { entity_type: "person", entity_id: person.id });
   const taskMutations = useTaskMutations();
+  const [editing, setEditing] = useState(false);
   const [notes, setNotes] = useState(person.notes);
   const [summary, setSummary] = useState("");
   const [kind, setKind] = useState<string>(InteractionKind.NOTE);
@@ -71,7 +74,7 @@ function PersonBody({ person }: { person: PersonType }) {
     });
   };
 
-  const lastTone = person.going_cold ? "held" : "neutral";
+  const lastTone = person.going_cold ? "danger" : "neutral";
 
   return (
     <>
@@ -81,6 +84,9 @@ function PersonBody({ person }: { person: PersonType }) {
           <h1 className={styles["name"]}>{person.name}</h1>
           <div className={styles["role"]}>{person.role || "No role recorded"}</div>
         </div>
+        <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
+          Edit
+        </Button>
         <Badge tone={lastTone} pill>
           last contacted {agoLabel(person.last_contacted_at)}
         </Badge>
@@ -149,8 +155,8 @@ function PersonBody({ person }: { person: PersonType }) {
                 <CardRow key={row.split_id}>
                   <Mono className={styles["when"]}>{dateLabel(row.occurred_at)}</Mono>
                   <span className={styles["text"]}>{row.title}</span>
-                  <Mono size={12} tone={row.settled_at ? "muted" : row.amount > 0 ? "ok" : "danger"}>
-                    {row.settled_at ? "settled" : signedPkr(row.amount)}
+                  <Mono size={12} tone={row.settled ? "muted" : row.amount > 0 ? "ok" : "danger"}>
+                    {row.settled ? "settled" : Number(row.allocated) > 0 ? `${signedPkr(row.amount)} · ${signedPkr(Number(row.allocated) * Math.sign(-row.amount))} paid` : signedPkr(row.amount)}
                   </Mono>
                 </CardRow>
               ))
@@ -170,6 +176,105 @@ function PersonBody({ person }: { person: PersonType }) {
           Delete person
         </Button>
       </div>
+
+      {editing && <PersonEditSheet person={person} onClose={() => setEditing(false)} />}
     </>
+  );
+}
+
+/** Edit who someone is. Tags are free text with no registry — a tag exists because a
+ *  person carries it — so every tag already in use is offered as a chip. Typing "uni"
+ *  when "university" exists silently splits a filter in two, and nothing warns you. */
+function PersonEditSheet({ person, onClose }: { person: PersonType; onClose: () => void }) {
+  const mutations = usePeopleMutations();
+  const { say } = useShell();
+  const everyone = usePeople({});
+  const [name, setName] = useState(person.name);
+  const [role, setRole] = useState(person.role);
+  const [tagText, setTagText] = useState(person.tags.join(", "));
+  const [canRefer, setCanRefer] = useState(person.can_refer);
+  const [cadence, setCadence] = useState(person.cadence_days === null || person.cadence_days === undefined ? "" : String(person.cadence_days));
+  const [error, setError] = useState<string | null>(null);
+
+  const chosen = useMemo(() => tagText.split(",").map((s) => s.trim()).filter(Boolean), [tagText]);
+
+  const known = useMemo(() => {
+    const all = new Set<string>();
+    for (const p of everyone.data?.items ?? []) for (const tag of p.tags) all.add(tag);
+    return [...all].sort();
+  }, [everyone.data]);
+
+  const toggleTag = (tag: string) => {
+    const next = chosen.includes(tag) ? chosen.filter((t) => t !== tag) : [...chosen, tag];
+    setTagText(next.join(", "));
+  };
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!name.trim()) return setError("A person needs a name.");
+    try {
+      await mutations.update.mutateAsync({
+        id: person.id,
+        body: {
+          name: name.trim(),
+          role: role.trim(),
+          // Sent whole: the server reconciles the list, adding and removing to match.
+          tags: chosen,
+          can_refer: canRefer,
+          cadence_days: cadence ? Number(cadence) : null,
+        },
+      });
+      say(`Updated ${name.trim()}`);
+      onClose();
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  };
+
+  return (
+    <Sheet
+      open
+      onClose={onClose}
+      title={`Edit ${person.name}`}
+      footer={
+        <>
+          <Button variant="primary" type="submit" form="edit-person" busy={mutations.update.isPending} disabled={!name.trim()}>
+            Save
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+        </>
+      }
+    >
+      <form id="edit-person" onSubmit={(e) => void submit(e)} className={styles["form"]}>
+        <Field label="Name">{(id) => <Input id={id} value={name} onChange={(e) => setName(e.target.value)} autoFocus />}</Field>
+        <Field label="Role">{(id) => <Input id={id} value={role} onChange={(e) => setRole(e.target.value)} placeholder="Technical recruiter · <company>" />}</Field>
+        <Field label="Tags" hint="Comma-separated. Tap one below to add or remove it.">
+          {(id) => <Input id={id} value={tagText} onChange={(e) => setTagText(e.target.value)} placeholder="recruiter, alumni, can refer" />}
+        </Field>
+        {known.length > 0 && (
+          <div className={styles["tagPicker"]}>
+            {known.map((tag) => (
+              <button key={tag} type="button" onClick={() => toggleTag(tag)} className={cx(styles["tagChip"], chosen.includes(tag) && styles["tagChipOn"])}>
+                {tag}
+              </button>
+            ))}
+          </div>
+        )}
+        <Field label="Can refer" hint="Shows on the People screen as a filter.">
+          {(id) => (
+            <Select id={id} value={canRefer ? "yes" : "no"} onChange={(e) => setCanRefer(e.target.value === "yes")}>
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </Select>
+          )}
+        </Field>
+        <Field label="Cadence · days" hint="Empty means they never go cold and Enola will never nudge you about them.">
+          {(id) => <Input id={id} type="number" min={1} max={365} mono value={cadence} onChange={(e) => setCadence(e.target.value)} />}
+        </Field>
+        {error && <Mono tone="danger">{error}</Mono>}
+      </form>
+    </Sheet>
   );
 }
