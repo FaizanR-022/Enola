@@ -14,9 +14,10 @@
 }
 .title {
   margin: 0;
-  font-size: 21px;
+  font-size: var(--fs-30);
   letter-spacing: var(--track-tight);
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 1.15;
 }
 .sub {
   font-size: var(--fs-13);
@@ -172,6 +173,9 @@
   line-height: 1.45;
 }
 @media (max-width: 759px) {
+  .title {
+    font-size: var(--fs-22);
+  }
   .nextWhen {
     width: 100%;
   }

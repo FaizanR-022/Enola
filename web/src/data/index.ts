@@ -107,6 +107,17 @@ export function useChatHistory(threadId: string) {
   return useQuery({ queryKey: keys.chat(threadId), queryFn: () => unwrap(api.GET("/api/chat/{thread_id}", { params: { path: { thread_id: threadId } } })) });
 }
 
+export function useClearChat(threadId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.DELETE("/api/chat/{thread_id}", { params: { path: { thread_id: threadId } } }),
+    onSuccess: () => {
+      qc.setQueryData(keys.chat(threadId), []);
+      void qc.invalidateQueries({ queryKey: ["chat"] });
+    },
+  });
+}
+
 export function useSendChat(threadId: string) {
   const invalidate = useInvalidateAgentState();
   return useMutation({

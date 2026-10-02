@@ -2,7 +2,6 @@ import { NavLink } from "react-router-dom";
 import { useOwner } from "@/lib/auth";
 import { useHeldCount, useReminderCount } from "@/lib/held";
 import { cx } from "@/lib/cx";
-import { modK } from "@/lib/platform";
 import { Avatar, Badge, Dot, Mono } from "@/ui";
 import { useShell } from "./ShellState";
 import { Wordmark } from "./Wordmark";
@@ -13,16 +12,12 @@ export function Nav({ current }: { current: ScreenId }) {
   const owner = useOwner();
   const held = useHeldCount();
   const reminders = useReminderCount();
-  const { setSettingsOpen, openPalette } = useShell();
+  const { setSettingsOpen } = useShell();
 
   return (
     <nav className={styles["nav"]} aria-label="Primary">
       <div className={styles["brand"]}>
         <Wordmark size="sm" />
-        <span className={styles["spacer"]} />
-        <button type="button" className={styles["kbd"]} onClick={() => openPalette()} title="Search or ask Enola">
-          <Mono>{modK}</Mono>
-        </button>
       </div>
       <div className={styles["sections"]}>
         {NAV_SECTIONS.map((section) => (

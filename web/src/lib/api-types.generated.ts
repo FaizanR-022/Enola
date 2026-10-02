@@ -1002,7 +1002,11 @@ export interface paths {
         get: operations["chat_history"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Clear
+         * @description Forget a conversation. Refused while a Held action is parked on it.
+         */
+        delete: operations["chat_clear"];
         options?: never;
         head?: never;
         patch?: never;
@@ -8281,6 +8285,46 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ChatMessageRead"][];
                 };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    chat_clear: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+            };
+            cookie?: {
+                enola_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Client Error */
             "4XX": {

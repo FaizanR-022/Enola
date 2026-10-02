@@ -5,8 +5,10 @@
 }
 .balance {
   font-family: var(--font-mono);
-  font-size: var(--fs-19);
+  font-size: var(--fs-22);
+  font-weight: 500;
   letter-spacing: -0.02em;
+  color: var(--accent);
 }
 .delta {
   font-size: var(--fs-11);
@@ -108,8 +110,7 @@
   text-align: right;
 }
 .spendNote {
-  border-top: 1px solid var(--line);
-  padding-top: 11px;
+  padding-top: var(--sp-7);
   font-size: var(--fs-11);
   color: var(--tx3);
   line-height: 1.5;
@@ -146,7 +147,7 @@
 }
 .chipOn {
   border-color: var(--accent);
-  background: var(--cyd);
+  background: var(--s3);
   color: var(--accent);
 }
 .preview {

@@ -18,7 +18,11 @@
   gap: var(--sp-6);
 }
 .scopeLine {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-5);
+  flex-wrap: wrap;
 }
 .empty {
   margin: 0;

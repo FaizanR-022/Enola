@@ -8,7 +8,7 @@ import { errorMessage } from "@/lib/api";
 import { cx } from "@/lib/cx";
 import { useFinishBoot, useHeaderMeta, useShell } from "@/shell/ShellState";
 import { Badge, Button, Card, EmptyState, Field, Input, Mono, QueryState, ScreenHeader, Select, Sheet, TextArea } from "@/ui";
-import { Screen, Stack } from "./Screen";
+import { Grid, Screen } from "./Screen";
 import styles from "./Learning.module.css";
 
 type GoalState = Schemas["LearningGoalState"];
@@ -49,7 +49,7 @@ export function Learning() {
             ) : (
               <div className={styles["gaps"]}>
                 {gaps.map(([skill, postings]) => (
-                  <button key={skill} type="button" className={styles["resourceBtn"]} onClick={() => setAdding(skill)} title={`Start a goal for ${skill}`}>
+                  <button key={skill} type="button" className={styles["gapBtn"]} onClick={() => setAdding(skill)} title={`Start a goal for ${skill}`}>
                     <Badge tone="accent" pill>
                       {skill} · {postings}
                     </Badge>
@@ -83,11 +83,11 @@ export function Learning() {
               }
             />
           ) : (
-            <Stack>
+            <Grid min="330px">
               {page.items.map((g) => (
                 <GoalCard key={g.id} goal={g} />
               ))}
-            </Stack>
+            </Grid>
           )
         }
       </QueryState>
@@ -101,6 +101,7 @@ function GoalCard({ goal: g }: { goal: LearningGoal }) {
   const { say } = useShell();
   const [pct, setPct] = useState(g.progress_pct);
   const [newResource, setNewResource] = useState("");
+  const [adding, setAdding] = useState(false);
   const resourcesIn = () => g.resources.map((r) => ({ label: r.label, url: r.url, done: r.done }));
   const toggle = (id: number) => {
     const resources = g.resources.map((r) => ({ label: r.label, url: r.url, done: r.id === id ? !r.done : r.done }));
@@ -109,8 +110,18 @@ function GoalCard({ goal: g }: { goal: LearningGoal }) {
   const addResource = (e: FormEvent) => {
     e.preventDefault();
     if (!newResource.trim()) return;
-    update.mutate({ id: g.id, body: { resources: [...resourcesIn(), { label: newResource.trim(), url: "", done: false }] } }, { onSuccess: () => setNewResource("") });
+    update.mutate(
+      { id: g.id, body: { resources: [...resourcesIn(), { label: newResource.trim(), url: "", done: false }] } },
+      {
+        onSuccess: () => {
+          setNewResource("");
+          setAdding(false);
+        },
+      },
+    );
   };
+  const commit = () => pct !== g.progress_pct && update.mutate({ id: g.id, body: { progress_pct: pct } });
+  const done = g.resources.filter((r) => r.done).length;
   return (
     <Card>
       <div className={styles["head"]}>
@@ -124,34 +135,74 @@ function GoalCard({ goal: g }: { goal: LearningGoal }) {
           ))}
         </Select>
       </div>
+
+      {/* Why the goal exists is the most useful line on the card, so it sits directly
+          under the title rather than below the controls. */}
+      {g.gap_note && <span className={styles["gap"]}>{g.gap_note}</span>}
+
+      {/* One control, not two: this was a static bar and a slider stacked, showing the
+          same number twice. The slider is the bar. */}
       <div className={styles["progress"]}>
-        <div className={styles["track"]} style={{ flex: 1 }}>
-          <span className={cx(styles["fill"], g.seeded_from_postings ? styles["fillAccent"] : styles["fillSoft"])} style={{ ["--pct" as string]: `${pct}%` }} />
-        </div>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={5}
+          value={pct}
+          aria-label={`Progress on ${g.title}`}
+          className={cx(g.seeded_from_postings ? styles["rangeAccent"] : styles["rangeSoft"])}
+          onChange={(e) => setPct(Number(e.target.value))}
+          onPointerUp={commit}
+          onKeyUp={commit}
+        />
         <Mono size={11} tone="soft">
           {pct}%
         </Mono>
       </div>
-      <div className={styles["progress"]}>
-        <input type="range" min={0} max={100} step={5} value={pct} aria-label={`Progress on ${g.title}`} onChange={(e) => setPct(Number(e.target.value))} onPointerUp={() => pct !== g.progress_pct && update.mutate({ id: g.id, body: { progress_pct: pct } })} onKeyUp={() => pct !== g.progress_pct && update.mutate({ id: g.id, body: { progress_pct: pct } })} />
+
+      {g.resources.length > 0 && (
+        <ul className={styles["resources"]}>
+          {g.resources.map((r) => (
+            <li key={r.id}>
+              <button type="button" className={cx(styles["resource"], r.done && styles["resourceDone"])} onClick={() => toggle(r.id)} aria-pressed={r.done}>
+                <span className={styles["box"]} aria-hidden>
+                  {r.done ? "✓" : ""}
+                </span>
+                <span className={styles["resourceLabel"]}>{r.label}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className={styles["resourceFoot"]}>
+        {adding ? (
+          <form className={styles["resourceForm"]} onSubmit={addResource}>
+            <Input
+              value={newResource}
+              onChange={(e) => setNewResource(e.target.value)}
+              placeholder="A doc, a course, a person"
+              aria-label={`Add resource to ${g.title}`}
+              autoFocus
+              onBlur={() => !newResource.trim() && setAdding(false)}
+            />
+            <Button size="sm" type="submit" disabled={!newResource.trim()}>
+              Add
+            </Button>
+          </form>
+        ) : (
+          <>
+            <Button variant="link" onClick={() => setAdding(true)}>
+              + resource
+            </Button>
+            {g.resources.length > 0 && (
+              <Mono>
+                {done} of {g.resources.length} done
+              </Mono>
+            )}
+          </>
+        )}
       </div>
-      {g.gap_note && <span className={styles["gap"]}>{g.gap_note}</span>}
-      <div className={styles["resources"]}>
-        {g.resources.map((r) => (
-          <button key={r.id} type="button" className={styles["resourceBtn"]} onClick={() => toggle(r.id)} aria-pressed={r.done} title={r.done ? "Mark not done" : "Mark done"}>
-            <Badge tone={r.done ? "ok" : "accent"}>
-              {r.done ? "✓ " : ""}
-              {r.label}
-            </Badge>
-          </button>
-        ))}
-      </div>
-      <form className={styles["resourceForm"]} onSubmit={addResource}>
-        <Input value={newResource} onChange={(e) => setNewResource(e.target.value)} placeholder="Add a resource: a doc, a course, a person" aria-label={`Add resource to ${g.title}`} />
-        <Button size="sm" type="submit" disabled={!newResource.trim()}>
-          Add
-        </Button>
-      </form>
     </Card>
   );
 }

@@ -82,3 +82,45 @@ def test_dashboard_and_search_aggregate_real_rows(client: TestClient, db: Sessio
     people = client.get("/api/search", params={"q": "ayesha"}).json()
     assert people and people[0]["group"] == "People" and people[0]["path"].startswith("/people/")
     assert client.get("/api/search", params={"q": ""}).status_code == 422
+
+
+def test_clear_forgets_the_thread(db: Session, client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Clearing drops the transcript but keeps the record of what Enola did."""
+    from langchain_core.messages import AIMessage
+
+    from enola.agent import service as agent_service
+    from tests.agent_helpers import ScriptedModel
+
+    model = ScriptedModel(script=[AIMessage(content="Noted.")])
+    monkeypatch.setattr(agent_service, "make_model", lambda *a, **k: model)
+    monkeypatch.setattr(agent_service, "model_available", lambda: True)
+
+    client.post("/api/chat", json={"text": "hello", "thread_id": "clear-me", "scope": "everything", "source": "text"})
+    assert len(client.get("/api/chat/clear-me").json()) > 0
+
+    assert client.delete("/api/chat/clear-me").status_code == 204
+    assert client.get("/api/chat/clear-me").json() == []
+
+
+def test_clear_is_refused_while_something_is_held(db: Session, client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A Held row points at a checkpoint it resumes from. Dropping the checkpoints would
+    leave an approval that can be clicked but can never complete."""
+    from langchain_core.messages import AIMessage
+
+    from enola.agent import service as agent_service
+    from enola.agent.tools import probes
+    from tests.agent_helpers import ScriptedModel, ai_tool_call
+
+    model = ScriptedModel(script=[ai_tool_call("send_probe", {"to": "a@b.co", "message": "x"}, "c1"), AIMessage(content="ok")])
+    monkeypatch.setattr(agent_service, "make_model", lambda *a, **k: model)
+    monkeypatch.setattr(agent_service, "model_available", lambda: True)
+    probes.SENT.clear()
+
+    run = client.post("/api/chat", json={"text": "send it", "thread_id": "held-thread", "scope": "everything", "source": "text"}).json()
+    assert run["held_approval_id"] is not None
+
+    refused = client.delete("/api/chat/held-thread")
+    assert refused.status_code == 409
+    assert "Held" in refused.json()["error"]["message"]
+    # And the transcript is still there, so nothing was half-deleted.
+    assert len(client.get("/api/chat/held-thread").json()) > 0

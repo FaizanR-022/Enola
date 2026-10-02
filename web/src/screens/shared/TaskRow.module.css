@@ -64,6 +64,11 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Inside a screen's primary region: one step up, so it reads with the rest of it. */
+.lead .title {
+  font-size: var(--fs-14);
+  font-weight: 500;
+}
 .done .title {
   color: var(--tx3);
   text-decoration: line-through;

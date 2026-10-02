@@ -150,6 +150,25 @@ class AgentService:
             log.info("run_resume", approval_id=approval_id, decision=decision["decision"])
             return self._invoke(Command(resume=decision), thread_id=row.thread_id, run_id=row.run_id)
 
+    def clear(self, thread_id: str = MAIN_THREAD) -> None:
+        """Forget a conversation: drop its LangGraph checkpoints.
+
+        Refused while something is Held on the thread. The Held row points at a
+        checkpoint it will resume from, so deleting the checkpoints would leave an
+        approval that can be clicked but can never complete.
+
+        Resolved approval rows and the activity log are deliberately kept — they are the
+        record of what Enola actually did, which is not the same thing as the transcript.
+        """
+        pending = self.db.scalar(
+            select(ApprovalRequest.id).where(ApprovalRequest.thread_id == thread_id, ApprovalRequest.state == ApprovalState.HELD)
+        )
+        if pending is not None:
+            raise ConflictError("Something is Held on this thread. Decide it in Approvals before clearing.", details={"approval_id": pending})
+        with open_checkpointer(self.database_url) as saver:
+            saver.delete_thread(thread_id)
+        log.info("thread_cleared", thread_id=thread_id)
+
     def history(self, thread_id: str = MAIN_THREAD) -> list[ChatMessage]:
         with open_checkpointer(self.database_url) as saver:
             graph = build_graph(model=_NullModel(), registry=self.registry, checkpointer=saver, database_url=self.database_url)

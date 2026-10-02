@@ -9,7 +9,7 @@
 .composerTitle {
   padding: 12px var(--sp-6) 8px;
   font-size: var(--fs-15);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.012em;
 }
 .composerBody {
@@ -48,7 +48,7 @@
 .tagOn {
   color: var(--accent);
   border-color: var(--accent);
-  background: var(--cyd);
+  background: var(--s3);
 }
 .searchRow {
   padding: 9px 11px;
@@ -142,8 +142,7 @@
   background: var(--line2);
 }
 .weekNote {
-  border-top: 1px solid var(--line);
-  padding-top: 11px;
+  padding-top: var(--sp-7);
   font-size: var(--fs-12);
   color: var(--tx2);
   line-height: 1.55;

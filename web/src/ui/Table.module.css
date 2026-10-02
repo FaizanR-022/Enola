@@ -20,6 +20,7 @@
 .table th {
   padding-top: var(--sp-5);
   padding-bottom: var(--sp-5);
+  background: var(--s2);
 }
 .table tbody tr:last-child td {
   border-bottom: none;

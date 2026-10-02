@@ -25,6 +25,7 @@ export function Finance() {
   const [month, setMonth] = useState(currentMonth);
   const [entry, setEntry] = useState<Entry | null>(null);
   const [settleWith, setSettleWith] = useState<OwedRow | null>(null);
+  const [addingAccount, setAddingAccount] = useState(false);
   const accounts = useAccounts();
   const transactions = useTransactions(month);
   const summary = useFinanceSummary(month);
@@ -62,6 +63,9 @@ export function Finance() {
             <Button size="sm" onClick={() => openSettle(null)}>
               Settle up
             </Button>
+            <Button size="sm" variant="ghost" onClick={() => setAddingAccount(true)}>
+              Add account
+            </Button>
           </div>
         }
       />
@@ -69,7 +73,15 @@ export function Finance() {
       <QueryState status={accounts.status} error={accounts.error} data={accounts.data} onRetry={() => void accounts.refetch()} rows={2}>
         {(page) =>
           page.items.length === 0 ? (
-            <EmptyState title="No accounts yet." hint="Add the places your money lives: a bank account, a wallet, cash." action={<AddAccountButton />} />
+            <EmptyState
+              title="No accounts yet."
+              hint="Add the places your money lives: a bank account, a wallet, cash."
+              action={
+                <Button size="sm" onClick={() => setAddingAccount(true)}>
+                  Add account
+                </Button>
+              }
+            />
           ) : (
             <Grid min="178px">
               {page.items.map((a) => (
@@ -192,6 +204,7 @@ export function Finance() {
         </Stack>
       </Grid>
 
+      {addingAccount && <AccountSheet onClose={() => setAddingAccount(false)} />}
       {entry && (
         <EntrySheet
           entry={entry}
@@ -247,13 +260,68 @@ function LedgerRow({ tx, onDelete }: { tx: Transaction; onDelete: () => void }) 
   );
 }
 
-function AddAccountButton() {
+const ACCOUNT_KINDS = ["cash", "wallet", "bank"] as const;
+
+/** Add a place money lives. This used to be a button that created one hardcoded "Cash"
+ *  account, rendered only in the empty state — so after the first account there was no
+ *  way to add a second. */
+function AccountSheet({ onClose }: { onClose: () => void }) {
   const mutations = useFinanceMutations();
   const { say } = useShell();
+  const [name, setName] = useState("");
+  const [kind, setKind] = useState<(typeof ACCOUNT_KINDS)[number]>("cash");
+  const [opening, setOpening] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!name.trim()) return setError("Give the account a name.");
+    const amount = opening.trim() === "" ? "0" : opening.trim();
+    if (Number.isNaN(Number(amount))) return setError("The opening balance must be a number.");
+    try {
+      await mutations.createAccount.mutateAsync({ name: name.trim(), kind, opening_balance: amount, currency: "PKR" });
+      say(`Added ${name.trim()}`);
+      onClose();
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  };
+
   return (
-    <Button size="sm" onClick={() => mutations.createAccount.mutate({ name: "Cash", kind: "cash", opening_balance: "0", currency: "PKR" }, { onSuccess: () => say("Added a Cash account") })}>
-      Add a Cash account
-    </Button>
+    <Sheet
+      open
+      onClose={onClose}
+      title="Add an account"
+      footer={
+        <>
+          <Button variant="primary" type="submit" form="account-form" busy={mutations.createAccount.isPending} disabled={!name.trim()}>
+            Save
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+        </>
+      }
+    >
+      <form id="account-form" className={styles["form"]} onSubmit={(e) => void submit(e)}>
+        <Field label="Name">{(id) => <Input id={id} value={name} onChange={(e) => setName(e.target.value)} placeholder="SadaPay" autoFocus />}</Field>
+        <Field label="Kind">
+          {(id) => (
+            <Select id={id} value={kind} onChange={(e) => setKind(e.target.value as (typeof ACCOUNT_KINDS)[number])}>
+              {ACCOUNT_KINDS.map((k) => (
+                <option key={k} value={k}>
+                  {k}
+                </option>
+              ))}
+            </Select>
+          )}
+        </Field>
+        <Field label="Opening balance · PKR" hint="What is in it today. Leave empty for zero — but then your balance goes negative as you spend.">
+          {(id) => <Input id={id} mono inputMode="decimal" value={opening} onChange={(e) => setOpening(e.target.value)} placeholder="0" />}
+        </Field>
+        {error && <Mono tone="danger">{error}</Mono>}
+      </form>
+    </Sheet>
   );
 }
 

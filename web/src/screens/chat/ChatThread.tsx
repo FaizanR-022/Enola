@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type PointerEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { useChatHistory, useDecideApproval, useSendChat, type ChatMessage } from "@/data";
+import { useChatHistory, useClearChat, useDecideApproval, useSendChat, type ChatMessage } from "@/data";
 import { ApiError, errorMessage, type Schemas } from "@/lib/api";
 import { cx } from "@/lib/cx";
 import { useSetting } from "@/lib/settings";
@@ -19,6 +19,10 @@ const CHIPS = ["What needs me today?", "Who can advise me on distributed systems
 export function ChatThread({ scope, compact = false, initialAsk }: { scope: string; compact?: boolean | undefined; initialAsk?: string | undefined }) {
   const history = useChatHistory(THREAD);
   const send = useSendChat(THREAD);
+  const clear = useClearChat(THREAD);
+  // Two taps, like completing a task: clearing cannot be undone, and the transcript is
+  // the only copy of the conversation.
+  const [armedClear, setArmedClear] = useState(false);
   const decide = useDecideApproval();
   const navigate = useNavigate();
   const { say } = useShell();
@@ -113,9 +117,31 @@ export function ChatThread({ scope, compact = false, initialAsk }: { scope: stri
     <div className={cx(styles["thread"], compact && styles["compact"])}>
       <div className={styles["messages"]}>
         {!compact && (
-          <Mono upper className={styles["scopeLine"]}>
-            One thread · scope: {scope}
-          </Mono>
+          <div className={styles["scopeLine"]}>
+            <Mono upper>One thread · scope: {scope}</Mono>
+            {messages.length > 0 && (
+              <Button
+                variant="link"
+                onClick={() => {
+                  if (!armedClear) return setArmedClear(true);
+                  clear.mutate(undefined, {
+                    onSuccess: () => {
+                      setArmedClear(false);
+                      say("Chat cleared");
+                    },
+                    onError: (error) => {
+                      setArmedClear(false);
+                      say(errorMessage(error));
+                    },
+                  });
+                }}
+                onBlur={() => setArmedClear(false)}
+                busy={clear.isPending}
+              >
+                {armedClear ? "Clear? tap again" : "Clear chat"}
+              </Button>
+            )}
+          </div>
         )}
         {messages.length === 0 && !send.isPending && (
           <p className={styles["empty"]}>{compact ? "Ask about this screen." : "Nothing said yet. Enola can read everything and write to tasks, notes and records."}</p>

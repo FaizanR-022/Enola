@@ -6,6 +6,25 @@
 .spacer {
   flex: 1;
 }
+/* The shared Grid uses align-items: start so cards hug their content. Here every card
+   should be the same size, so rows stretch and each row is as tall as its tallest card. */
+.cards {
+  align-items: stretch;
+  grid-auto-rows: 1fr;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-14);
+  font-weight: 500;
+  color: var(--tx);
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+
 .summary {
   margin: 0;
   font-size: var(--fs-12);
@@ -18,10 +37,13 @@
   flex-wrap: wrap;
 }
 .foot {
+  margin-top: auto;
   border-top: 1px solid var(--line);
-  padding-top: 9px;
+  padding-top: var(--sp-5);
   display: flex;
-  gap: var(--sp-6);
+  align-items: center;
+  gap: var(--sp-5);
+  flex-wrap: wrap;
 }
 .toolbar {
   display: flex;
@@ -29,15 +51,7 @@
   flex-wrap: wrap;
 }
 .status {
-  margin-left: auto;
-}
-.structure {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--fs-11);
-  color: var(--tx3);
-  white-space: pre-wrap;
-  line-height: 1.5;
+  flex: none;
 }
 .form {
   display: flex;

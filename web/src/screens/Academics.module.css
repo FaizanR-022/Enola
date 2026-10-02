@@ -14,7 +14,7 @@
 }
 .tabOn {
   background: var(--s3);
-  color: var(--tx);
+  color: var(--accent);
 }
 .course {
   border: 1px solid var(--line);
@@ -39,7 +39,7 @@
 }
 .courseName {
   font-family: var(--font-serif);
-  font-size: 16.5px;
+  font-size: var(--fs-17);
   line-height: 1.3;
 }
 .courseMeta {
@@ -53,11 +53,12 @@
   margin-top: 3px;
 }
 .courseTitle {
-  margin: 6px 0 0;
+  margin: var(--sp-3) 0 0;
   font-family: var(--font-serif);
-  font-size: 24px;
+  font-size: var(--fs-30);
   letter-spacing: -0.01em;
   font-weight: 400;
+  line-height: 1.15;
 }
 .courseSub {
   font-size: var(--fs-12);
@@ -67,7 +68,7 @@
 .detail {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  gap: var(--sp-7);
+  gap: var(--sp-9);
   align-items: start;
 }
 .kind {
@@ -157,10 +158,10 @@
   background: var(--bg);
 }
 .fypTitle {
-  margin: 6px 0 0;
+  margin: var(--sp-3) 0 0;
   font-family: var(--font-serif);
-  font-size: 22px;
-  line-height: 1.25;
+  font-size: var(--fs-30);
+  line-height: 1.2;
   font-weight: 400;
 }
 .fypNote {
@@ -199,7 +200,7 @@
 }
 .noteTitle {
   font-family: var(--font-serif);
-  font-size: 14.5px;
+  font-size: var(--fs-15);
 }
 .noteBody {
   font-size: var(--fs-12);
@@ -221,7 +222,7 @@
 }
 .prepTitle {
   font-family: var(--font-serif);
-  font-size: 17px;
+  font-size: var(--fs-17);
 }
 .prepSub {
   font-size: var(--fs-12);
@@ -230,7 +231,7 @@
 }
 .question {
   font-family: var(--font-serif);
-  font-size: 19px;
+  font-size: var(--fs-22);
   line-height: 1.45;
 }
 .prepActions {
@@ -239,8 +240,7 @@
   flex-wrap: wrap;
 }
 .prepFoot {
-  border-top: 1px solid var(--line);
-  padding-top: var(--sp-6);
+  padding-top: var(--sp-7);
   font-size: var(--fs-11);
   color: var(--tx3);
   line-height: 1.5;
@@ -255,7 +255,7 @@
   min-width: 130px;
 }
 .statValue {
-  font-size: 17px;
+  font-size: var(--fs-17);
 }
 .statKey {
   font-size: var(--fs-11);
@@ -264,6 +264,10 @@
 @media (max-width: 759px) {
   .detail {
     grid-template-columns: 1fr;
+  }
+  .courseTitle,
+  .fypTitle {
+    font-size: var(--fs-22);
   }
   .chat {
     height: 380px;

@@ -13,8 +13,11 @@ const DISARM_MS = 4000;
  *  Completing takes two taps. The first arms the row (the box becomes a green confirm
  *  button, same size, so nothing moves); the second completes. Tapping elsewhere or
  *  four seconds idle disarms. Reopening a done task is a single tap: it is the safe
- *  direction. */
-export function TaskRow({ task, onToggle, compact = false, busy = false }: { task: Task; onToggle: (task: Task) => void; compact?: boolean | undefined; busy?: boolean | undefined }) {
+ *  direction.
+ *
+ *  `lead` marks a row that sits in a screen's one primary region: a step larger and
+ *  heavier, so the focal region reads as one block. */
+export function TaskRow({ task, onToggle, compact = false, busy = false, lead = false }: { task: Task; onToggle: (task: Task) => void; compact?: boolean | undefined; busy?: boolean | undefined; lead?: boolean | undefined }) {
   const done = task.state === "done";
   const urgency: Urgency = done ? "later" : urgencyOf(task.due_at);
   const link = task.links[0];
@@ -49,7 +52,7 @@ export function TaskRow({ task, onToggle, compact = false, busy = false }: { tas
 
   const toneClass = styles[`u-${urgency}`];
   return (
-    <CardRow ref={rowRef} className={cx(styles["row"], toneClass, done && styles["done"], armed && styles["armed"])}>
+    <CardRow ref={rowRef} className={cx(styles["row"], toneClass, lead && styles["lead"], done && styles["done"], armed && styles["armed"])}>
       <button
         type="button"
         className={cx(styles["check"], done && styles["checked"], armed && styles["confirm"])}

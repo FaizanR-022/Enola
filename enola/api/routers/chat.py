@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 from pydantic import BaseModel, Field
 
 from enola.agent.registry import registry
@@ -70,3 +70,10 @@ def tools(_: CurrentSession) -> list[ToolInfo]:
 @router.get("/{thread_id}", response_model=list[ChatMessageRead], operation_id="chat_history")
 def history(thread_id: str, db: DbSession, _: CurrentSession) -> list[ChatMessageRead]:
     return [ChatMessageRead(role=m.role, text=m.text, tool_name=m.tool_name, tool_calls=m.tool_calls) for m in AgentService(db).history(thread_id)]
+
+
+@router.delete("/{thread_id}", status_code=204, operation_id="chat_clear")
+def clear(thread_id: str, db: DbSession, _: CurrentSession) -> Response:
+    """Forget a conversation. Refused while a Held action is parked on it."""
+    AgentService(db).clear(thread_id)
+    return Response(status_code=204)

@@ -2,7 +2,7 @@
   padding: var(--sp-8) var(--sp-8) 40px;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-7);
+  gap: var(--sp-9);
   min-height: 100%;
   background: var(--bg);
   color: var(--tx);
@@ -31,7 +31,7 @@
 @media (max-width: 759px) {
   .screen {
     padding: var(--sp-7) var(--sp-7) var(--sp-9);
-    gap: var(--sp-6);
+    gap: var(--sp-7);
   }
   .fill {
     padding: 0;

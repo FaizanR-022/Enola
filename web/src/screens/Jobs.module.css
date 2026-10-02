@@ -64,6 +64,7 @@
 }
 .cardRole {
   font-size: var(--fs-13);
+  font-weight: 500;
   line-height: 1.35;
   letter-spacing: -0.01em;
 }
@@ -88,21 +89,20 @@
   line-height: 1.4;
 }
 .discoverySection {
-  border-top: 1px solid var(--line);
-  padding-top: var(--sp-7);
+  padding-top: var(--sp-9);
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: var(--sp-5);
 }
 .discoveryHead {
   display: flex;
   align-items: baseline;
-  gap: var(--sp-6);
+  gap: var(--sp-5);
   flex-wrap: wrap;
 }
 .discoveryTitle {
   font-size: var(--fs-15);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 .discoverySub {
@@ -187,7 +187,7 @@
   }
   .stageChipOn {
     border-color: var(--accent);
-    background: var(--cyd);
+    background: var(--s3);
     color: var(--accent);
   }
   .board {

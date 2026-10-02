@@ -29,7 +29,11 @@ export function Card({ title, meta, note, edge = "none", flush = false, dashed =
     >
       {(title || meta) && (
         <header className={styles["head"]}>
-          {title && <Mono upper>{title}</Mono>}
+          {title && (
+            <Mono upper size={quiet ? 10 : 11} tone={quiet ? "muted" : "accent"}>
+              {title}
+            </Mono>
+          )}
           <span className={styles["spacer"]} />
           {meta && <span className={styles["meta"]}>{meta}</span>}
         </header>

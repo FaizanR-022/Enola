@@ -45,11 +45,12 @@
   align-items: center;
   gap: var(--sp-5);
   padding: var(--sp-6) var(--sp-7);
+  background: var(--s1);
   border-bottom: 1px solid var(--line);
 }
 .title {
-  font-size: var(--fs-14);
-  font-weight: 500;
+  font-size: var(--fs-15);
+  font-weight: 600;
   flex: 1;
 }
 .close {

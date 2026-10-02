@@ -58,7 +58,7 @@ export function Projects() {
               }
             />
           ) : (
-            <Grid min="288px">
+            <Grid min="288px" className={styles["cards"]}>
               {page.items.map((p) => (
                 <ProjectCard key={p.id} project={p} />
               ))}
@@ -75,14 +75,45 @@ function ProjectCard({ project: p }: { project: Project }) {
   const { update } = useProjectMutations();
   const { say } = useShell();
   const [showTasks, setShowTasks] = useState(false);
+  const [showAllStack, setShowAllStack] = useState(false);
+  // Stored as "owner/repo"; only the repo name is shown. The owner is the same on every
+  // card, so it carries no information — the full name is still in the repo link below.
+  const slash = p.name.lastIndexOf("/");
+  const repo = slash > 0 ? p.name.slice(slash + 1) : p.name;
+  // A full stack list is a wall of equal-weight pills. Lead with the few that say what
+  // this is; the rest are one click away.
+  const LEAD = 4;
+  const hidden = p.stack.length - LEAD;
+  const stack = showAllStack ? p.stack : p.stack.slice(0, LEAD);
   return (
     <Card>
       <div className={styles["head"]}>
         <Dot size={6} tone={statusTone(p.status)} />
-        <Mono size={12} tone="text">
-          {p.name}
-        </Mono>
-        <span className={styles["spacer"]} />
+        <span className={styles["name"]} title={p.name}>
+          {repo}
+        </span>
+      </div>
+      <p className={styles["summary"]}>{p.summary || "No summary yet."}</p>
+      {p.stack.length > 0 && (
+        <div className={styles["stack"]}>
+          {stack.map((s) => (
+            <Badge key={s} tone="soft">
+              {s}
+            </Badge>
+          ))}
+          {hidden > 0 && (
+            <Button variant="link" onClick={() => setShowAllStack((v) => !v)}>
+              {showAllStack ? "fewer" : `+${hidden}`}
+            </Button>
+          )}
+        </div>
+      )}
+      {p.repo_url && (
+        <a className={styles["link"]} href={p.repo_url} target="_blank" rel="noreferrer">
+          {p.repo_url.replace(/^https?:\/\//, "")}
+        </a>
+      )}
+      <div className={styles["foot"]}>
         <Select
           aria-label={`Status of ${p.name}`}
           className={styles["status"]}
@@ -95,27 +126,10 @@ function ProjectCard({ project: p }: { project: Project }) {
             </option>
           ))}
         </Select>
-      </div>
-      <p className={styles["summary"]}>{p.summary || "No summary yet."}</p>
-      {p.structure_summary && <pre className={styles["structure"]}>{p.structure_summary}</pre>}
-      {p.stack.length > 0 && (
-        <div className={styles["stack"]}>
-          {p.stack.map((s) => (
-            <Badge key={s} tone="soft">
-              {s}
-            </Badge>
-          ))}
-        </div>
-      )}
-      {p.repo_url && (
-        <a className={styles["link"]} href={p.repo_url} target="_blank" rel="noreferrer">
-          {p.repo_url}
-        </a>
-      )}
-      <div className={styles["foot"]}>
         <Button variant="link" onClick={() => setShowTasks((v) => !v)} disabled={p.linked_task_count === 0} aria-expanded={showTasks}>
           {p.linked_task_count} linked {p.linked_task_count === 1 ? "task" : "tasks"}
         </Button>
+        <span className={styles["spacer"]} />
         <Mono>{p.last_touched_at ? `touched ${agoLabel(p.last_touched_at)}` : "never touched"}</Mono>
       </div>
       {showTasks && <LinkedTasks projectId={p.id} />}

@@ -1,7 +1,7 @@
 .wrap {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-5);
+  gap: var(--sp-4);
 }
 .back {
   font-size: var(--fs-12);
@@ -9,7 +9,7 @@
 .row {
   display: flex;
   align-items: baseline;
-  gap: var(--sp-6);
+  gap: var(--sp-5);
   flex-wrap: wrap;
 }
 .serifRow {
@@ -19,14 +19,14 @@
 }
 .title {
   margin: 0;
-  font-size: var(--fs-22);
+  font-size: var(--fs-30);
   letter-spacing: var(--track-tight);
-  font-weight: 500;
-  line-height: 1.2;
+  font-weight: 600;
+  line-height: 1.15;
 }
 .serif {
   font-family: var(--font-serif);
-  font-size: 25px;
+  font-size: var(--fs-30);
   letter-spacing: -0.01em;
   font-weight: 400;
 }
@@ -34,6 +34,17 @@
   font-size: var(--fs-13);
   color: var(--tx2);
   line-height: 1.5;
+}
+
+/* The title still dominates on a phone, but at a size the column can hold.
+   .serif is listed explicitly: it is always applied alongside .title and both are
+   single-class selectors, so without this the override wins on source order alone and
+   would break the moment anyone reordered the file. */
+@media (max-width: 759px) {
+  .title,
+  .serif {
+    font-size: var(--fs-22);
+  }
 }
 .spacer {
   flex: 1;

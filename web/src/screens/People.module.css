@@ -15,7 +15,7 @@
 .chipOn {
   color: var(--accent);
   border-color: var(--accent);
-  background: var(--cyd);
+  background: var(--s3);
 }
 .form {
   display: flex;

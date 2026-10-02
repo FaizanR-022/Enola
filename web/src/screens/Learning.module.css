@@ -1,3 +1,12 @@
+/* A bare button wrapping a Badge: the Badge carries the look, this carries the click. */
+.gapBtn {
+  display: inline-flex;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
 .gaps {
   display: flex;
   gap: 7px;
@@ -14,33 +23,75 @@
   flex: 1;
   min-width: 150px;
   font-size: var(--fs-14);
+  font-weight: 500;
   letter-spacing: -0.01em;
 }
-.track {
-  height: 4px;
-  border-radius: 2px;
-  background: var(--s3);
-  overflow: hidden;
-}
-.fill {
-  display: block;
-  height: 100%;
-  width: var(--pct);
-}
-.fillAccent {
-  background: var(--accent);
-}
-.fillSoft {
-  background: var(--tx2);
-}
+/* Promoted to just under the title: it is why the goal exists. */
 .gap {
-  font-size: var(--fs-12);
-  color: var(--tx3);
-  line-height: 1.5;
+  font-size: var(--fs-13);
+  color: var(--tx2);
+  line-height: var(--lh-body);
 }
+/* A checklist, not a row of badges. Badges mean status; these are things to tick. */
 .resources {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
-  gap: 7px;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.resource {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  background: none;
+  border: 0;
+  border-radius: var(--r-2);
+  color: var(--tx);
+  font-size: var(--fs-13);
+  text-align: left;
+  cursor: pointer;
+}
+
+.resource:hover {
+  background: var(--s2);
+}
+
+.box {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line2);
+  border-radius: var(--r-1);
+  font-size: var(--fs-10);
+  color: var(--accent);
+}
+
+.resourceDone .box {
+  border-color: var(--accent);
+}
+
+.resourceDone .resourceLabel {
+  color: var(--tx3);
+  text-decoration: line-through;
+}
+
+.resourceLabel {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The add form was permanently open on every card. Now it is a link until wanted. */
+.resourceFoot {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
   flex-wrap: wrap;
 }
 .toolbar {
@@ -53,9 +104,6 @@
   flex-direction: column;
   gap: var(--sp-6);
 }
-.resourceBtn {
-  display: inline-flex;
-}
 .progress {
   display: flex;
   align-items: center;
@@ -63,8 +111,25 @@
 }
 .progress input[type="range"] {
   flex: 1;
+  min-width: 0;
+  min-height: 26px;
+}
+
+/* A full touch target is worth 44px on a phone and costs 18px of card height on a
+   desktop that does not need it. */
+@media (max-width: 759px) {
+  .progress input[type="range"] {
+    min-height: var(--touch);
+  }
+}
+
+.rangeAccent {
   accent-color: var(--accent);
-  min-height: 24px;
+}
+
+/* Goals the owner set themselves, rather than ones seeded from job postings. */
+.rangeSoft {
+  accent-color: var(--tx2);
 }
 .resourceForm {
   display: flex;

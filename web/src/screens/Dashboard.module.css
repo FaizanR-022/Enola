@@ -1,21 +1,35 @@
+/* A column now: the greeting leads and the date sits under it, rather than the two
+   competing on one baseline. */
 .heading {
   display: flex;
-  align-items: baseline;
-  gap: var(--sp-6);
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--sp-2);
 }
-.date {
+
+.greeting {
   margin: 0;
-  font-size: var(--fs-22);
+  font-size: var(--fs-30);
   letter-spacing: var(--track-tight);
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 1.15;
 }
+
 .headline {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
   font-size: var(--fs-13);
   color: var(--tx2);
 }
+
+/* Still here, just no longer the headline act. */
+.date {
+  color: var(--tx3);
+}
 .brief {
-  font-size: var(--fs-13);
+  font-size: var(--fs-12);
   line-height: 1.6;
   white-space: pre-wrap;
   color: var(--tx);
@@ -29,10 +43,11 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--sp-1);
 }
+/* Base is the demoted step; the primary region promotes it below. */
 .eventTitle {
-  font-size: var(--fs-13);
+  font-size: var(--fs-12);
 }
 .eventSub {
   font-size: var(--fs-11);
@@ -59,10 +74,23 @@
 .dismiss:hover {
   color: var(--tx);
 }
-/* The one full-contrast region on the dashboard. */
+/* The one full-contrast region on the dashboard: a step larger and heavier than
+   every other card, which is what makes the eye land here first. */
 .primary {
   border-color: var(--line2);
 }
 .primaryRow {
-  font-size: var(--fs-13);
+  font-size: var(--fs-14);
+}
+.primaryRow .eventTitle {
+  font-size: var(--fs-14);
+  font-weight: 500;
+  line-height: var(--lh-tight);
+}
+
+@media (max-width: 759px) {
+  /* The greeting is the large heading now; .date is the small supporting text. */
+  .greeting {
+    font-size: var(--fs-22);
+  }
 }

@@ -13,23 +13,11 @@
   gap: var(--sp-4);
   padding: var(--sp-2) var(--sp-3) var(--sp-7);
 }
-.spacer {
-  flex: 1;
-}
-/* A button now, not a label: it looked pressable and did nothing. */
-.kbd {
-  border: 1px solid var(--line2);
-  border-radius: var(--r-1);
-  padding: 2px 4px;
-  background: none;
-  color: var(--tx3);
-  cursor: pointer;
-}
 
-.kbd:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
+/* A button now, not a label: it looked pressable and did nothing. */
+
+
+
 .sections {
   overflow: auto;
   flex: 1;

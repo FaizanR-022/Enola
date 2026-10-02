@@ -3,6 +3,8 @@ import { useDashboard, useNotificationMutations, useTaskMutations, type Task } f
 import { useShell, useFinishBoot, useHeaderMeta } from "@/shell/ShellState";
 import { Button, Card, CardRow, Dot, EmptyState, Mono, QueryState } from "@/ui";
 import { timeLabel } from "@/lib/format";
+import { greet } from "@/lib/greeting";
+import { useOwner } from "@/lib/auth";
 import { Grid, Screen } from "./Screen";
 import { HeldBanner } from "./shared/HeldBanner";
 import { PersonRow } from "./shared/PersonRow";
@@ -31,6 +33,7 @@ function activityTone(kind: string): "accent" | "ok" | "held" | "danger" | "mute
  *  quieter. The dashboard answers "what needs me today" without being a wall. */
 export function Dashboard() {
   const dashboard = useDashboard();
+  const owner = useOwner();
   const navigate = useNavigate();
   const { say } = useShell();
   const tasks = useTaskMutations();
@@ -49,13 +52,17 @@ export function Dashboard() {
           return (
             <>
               <div className={styles["heading"]}>
-                <h1 className={styles["date"]}>{d.date_label}</h1>
-                <span className={styles["headline"]}>{d.headline}</span>
+                <h1 className={styles["greeting"]}>{greet(owner.data?.name)}</h1>
+                <p className={styles["headline"]}>
+                  <span className={styles["date"]}>{d.date_label}</span>
+                  <span aria-hidden>·</span>
+                  {d.headline}
+                </p>
               </div>
 
               {d.held.count > 0 && <HeldBanner summary={d.held.summary} />}
 
-              <Card title="Now" meta={<Mono>{now.length + d.today.length === 0 ? "clear" : `${now.length + d.today.length} items`}</Mono>} flush className={styles["primary"]}>
+              <Card title="Now" meta={<Mono>{now.length + d.today.length === 0 ? "clear" : `${now.length + d.today.length} items`}</Mono>} flush edge="accent" className={styles["primary"]}>
                 {now.length === 0 && d.today.length === 0 ? (
                   <EmptyState inline title="Nothing overdue and nothing due today." hint="This is the region that would interrupt you. It's empty." />
                 ) : (
@@ -73,7 +80,7 @@ export function Dashboard() {
                       </CardRow>
                     ))}
                     {now.map((task) => (
-                      <TaskRow key={task.id} task={task} onToggle={toggle} compact busy={tasks.setState.isPending} />
+                      <TaskRow key={task.id} task={task} onToggle={toggle} compact lead busy={tasks.setState.isPending} />
                     ))}
                   </>
                 )}
@@ -81,7 +88,7 @@ export function Dashboard() {
 
               <Grid min="280px">
                 {d.brief && (
-                  <Card quiet title="Daily brief" meta={<Mono>{timeLabel(d.brief.scheduled_for)}</Mono>} edge="accent">
+                  <Card quiet title="Daily brief" meta={<Mono>{timeLabel(d.brief.scheduled_for)}</Mono>}>
                     <div className={styles["brief"]}>{d.brief.body}</div>
                   </Card>
                 )}

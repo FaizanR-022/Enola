@@ -14,7 +14,7 @@
 }
 .tabOn {
   background: var(--s3);
-  color: var(--tx);
+  color: var(--accent);
 }
 .quick {
   border: 1px solid var(--line2);

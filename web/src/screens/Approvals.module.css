@@ -1,14 +1,15 @@
 .heading {
   display: flex;
   align-items: baseline;
-  gap: var(--sp-6);
+  gap: var(--sp-5);
   flex-wrap: wrap;
 }
 .h1 {
   margin: 0;
-  font-size: var(--fs-22);
+  font-size: var(--fs-30);
   letter-spacing: var(--track-tight);
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 1.15;
 }
 .sub {
   font-size: var(--fs-13);
@@ -44,8 +45,10 @@
 }
 .title {
   font-size: var(--fs-15);
+  font-weight: 500;
   letter-spacing: -0.01em;
-  margin-top: 2px;
+  line-height: var(--lh-tight);
+  margin-top: var(--sp-1);
 }
 .why {
   font-size: var(--fs-12);
@@ -72,7 +75,7 @@
 .mailHead {
   padding: 9px 12px;
   border-bottom: 1px solid var(--line);
-  background: var(--s1);
+  background: var(--s2);
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -100,7 +103,7 @@
 }
 .mailFoot {
   padding: 7px 12px;
-  background: var(--s1);
+  background: var(--s2);
   border-top: 1px solid var(--line);
   display: flex;
   gap: var(--sp-7);
@@ -114,6 +117,7 @@
   border: 1px solid var(--line);
   border-radius: 7px;
   overflow: hidden;
+  background: var(--s1);
   font-family: var(--font-mono);
   font-size: var(--fs-11);
 }
@@ -163,6 +167,9 @@
   max-width: 74ch;
 }
 @media (max-width: 759px) {
+  .h1 {
+    font-size: var(--fs-22);
+  }
   .fieldKey {
     width: 80px;
   }
