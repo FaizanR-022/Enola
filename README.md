@@ -4,8 +4,7 @@ A personal AI agent that holds one person's context — tasks, coursework, finan
 
 It proposes; it never acts unattended. Anything that leaves the system or destroys a record stops and waits to be approved.
 
-<!-- Drop screenshots in docs/ and reference them here. Dashboard, Approvals and Academics
-     are the three worth showing; Approvals is the one that makes the point. -->
+![Enola's dashboard: a Held action waiting for approval, today's tasks, reminders and contacts going cold](docs/home.png)
 
 ---
 
@@ -23,6 +22,14 @@ My coursework, job hunt, finances and inbox lived in five different places, and 
 - **People** — who you know, when you last spoke, a nudge when someone valuable goes quiet
 - **Memory** — what Enola believes about you, editable when it is wrong
 - **Chat** — text or push-to-talk voice, with a ⌘K/Ctrl+K palette over everything
+
+![A chat turn: asked to log carpool debts in plain English, the agent checks tasks, looks through people and records three settlements](docs/chat.png)
+
+*One sentence in; two tool calls and three records out. Each grey line is what it actually did, expandable to the call itself.*
+
+![The Email screen: a triaged inbox split into needs you, ongoing threads and worth knowing, with a thread summary](docs/email.png)
+
+*Triage runs on headers first and only spends the model on what survives — 2 needing a reply out of 55.*
 
 ## The idea that shapes everything else
 
@@ -47,6 +54,10 @@ Three properties fall out of putting the classification in the registry rather t
 - Because the checkpoint is in Postgres, a Held action **survives a restart** — which is why an in-memory checkpointer was never an option.
 
 The paused state is called **Held** everywhere: in the database, the API, the UI, and in conversation about it.
+
+![The Approvals screen: an email drafted by the agent, held before sending, showing the exact payload with approve, edit and reject](docs/approvals.png)
+
+*Nothing has been sent. The run is parked on a Postgres checkpoint until one of those three buttons is pressed — and it is still parked there after a restart.*
 
 ## How it is built
 
