@@ -1,137 +1,152 @@
-# enola
+# Enola
 
-A personal agent for one person, on one machine. It holds your context (people, tasks,
-job applications, coursework, finances, projects) and acts on it. It proposes; it never
-acts unattended. Anything that leaves the system or destroys a record is **Held** until
-you click.
+A personal AI agent that holds one person's context — tasks, coursework, finances, people, email — and acts on it.
 
-The design brief is `FABLE_PROMPT.md`. The visual prototype is in `design/`.
+It proposes; it never acts unattended. Anything that leaves the system or destroys a record stops and waits to be approved.
 
-## Run it
+<!-- Drop screenshots in docs/ and reference them here. Dashboard, Approvals and Academics
+     are the three worth showing; Approvals is the one that makes the point. -->
 
-Prerequisites: Docker Desktop, Python 3.12+, Node 20+.
+---
 
-```bash
-cp .env.example .env                       # then set ENOLA_OWNER_PASSWORD_HASH (below)
-python -m venv .venv && .venv/Scripts/pip install -e ".[dev]"     # Windows
-python -m enola.core.auth hash "your password"                     # paste into .env
-python -m enola.scripts.seed --reset       # realistic sample data, dates relative to today
-                                           # (or --wipe to start from an empty database)
+## Why it exists
+
+My coursework, job hunt, finances and inbox lived in five different places, and nothing connected them. A chatbot can answer questions about any one of them if I paste the context in first. What I wanted was something that already *has* the context and can act on it — file the deadline, draft the follow-up, notice the recruiter who went quiet eleven days ago.
+
+## What it does
+
+- **Dashboard** — what needs you today: Held approvals, overdue work, a daily brief, contacts going cold
+- **Tasks** — due dates, priorities, links to projects, courses and applications
+- **Academics** — courses, deadlines, uploaded materials, FYP milestones, and a chat scoped to a single course's documents
+- **Email** — IMAP triage into needs-reply / ongoing / noise, thread summaries, and drafted replies that go to Held before sending
+- **Finance** — expenses, income, transfers, splits and partial settlements, with balances always derived
+- **People** — who you know, when you last spoke, a nudge when someone valuable goes quiet
+- **Memory** — what Enola believes about you, editable when it is wrong
+- **Chat** — text or push-to-talk voice, with a ⌘K/Ctrl+K palette over everything
+
+## The idea that shapes everything else
+
+The screen list is not the interesting part. Enola doesn't just answer — it sends, writes and deletes, and anything that acts on your real life needs the one thing a chat app never needs: a way to stop it.
+
+**Every tool declares a risk level, and the registry — not the tool — decides whether it runs.**
+
+| Level | Behaviour |
+|---|---|
+| `SAFE` | reads; runs freely |
+| `WRITE_LOCAL` | writes Enola's own database; runs freely, logged |
+| `EXTERNAL` | sends, posts → **Held** |
+| `DESTRUCTIVE` | deletes, bulk edits → **Held** |
+| `UNCLASSIFIED` | **Held** — the default when no level is given |
+
+When the agent reaches for a gated tool, the graph calls LangGraph's `interrupt()`. The run **pauses**, an `approval_request` row is written, and the graph state is checkpointed to Postgres. You see the exact payload — recipient, subject, body — and approve, edit or reject it. On approval the run **resumes from that checkpoint** and the tool finally executes.
+
+Three properties fall out of putting the classification in the registry rather than in tool code:
+
+- A tool added later **cannot opt out** of the gate.
+- An unregistered or unclassified tool name is gated, so nothing runs on the strength of a name alone.
+- Because the checkpoint is in Postgres, a Held action **survives a restart** — which is why an in-memory checkpointer was never an option.
+
+The paused state is called **Held** everywhere: in the database, the API, the UI, and in conversation about it.
+
+## How it is built
+
+```
+React + TypeScript (Vite, CSS Modules)
+        │  same-origin; Vite proxies /api in dev
+        ▼
+FastAPI  ──  LangGraph agent core  ──  Gemini
+        │
+        ▼
+Postgres + pgvector  ◄── APScheduler worker (separate process)
+        │
+        └─ Gmail IMAP (read-only) / SMTP (send, after approval)
 ```
 
-Then, every time, one command:
+The worker never shares in-process state with the API — they communicate only through Postgres, so they could run on different machines. Scheduled jobs don't deliver anything themselves; they queue rows into a notification outbox, and delivery channels drain it. Adding web push later is one new class.
+
+TypeScript types and enums are **generated** from the OpenAPI schema, so a Pydantic change surfaces as a compile error rather than a runtime surprise.
+
+Roughly 9,300 lines of Python and 6,900 of TypeScript, 30 tables, 22 tools, 71 tests.
+
+## Worth reading, if you only read two files
+
+- **[`enola/agent/registry.py`](enola/agent/registry.py)** — the gate. Short, and the design intent is on the surface.
+- **[`tests/test_approval_gate.py`](tests/test_approval_gate.py)** — four mandatory tests asserting real properties: the side effect does not fire before approval, resume preserves the original arguments and fires exactly once, rejection leaves no partial writes, and an unclassified tool defaults to gated.
+
+## Decisions I would defend
+
+- **Email triage is two passes, cheap first.** Headers (`List-Unsubscribe`, `Precedence`, no-reply senders) remove about 90% of an inbox for free, so the model only classifies the handful that survive. With no model available the heuristic answer stands and the screen still works.
+- **IMAP is read-only by construction** — every mailbox opens `readonly=True` and the module contains no append, flag, move or delete path. Not a convention; there is no code to misuse.
+- **Balances are derived, never stored.** Settlements are their own rows with allocations against split shares, so a repayment can be partial and can exist without being tied to one expense — which is how paying someone back actually works.
+- **Assessments write into `task`.** A quiz deadline *is* a task underneath, so one reminder pipeline covers coursework and everything else, and a deadline shows up in the morning brief rather than hiding in its own tab.
+- **Model choice came from measurement, not documentation.** Google no longer publishes free-tier rate limits — they are per-project. Measured against this key, the obvious model allowed 5 requests a minute; one chat turn spends two to four on tool calls, so the agent loop was unusable. Its lighter sibling ran 14 in 11 seconds and binds all 22 tools without a schema error.
+
+## Not built
+
+- **Job tracking and discovery** — the pipeline and the daily board scraping exist in the codebase but are not working well enough to rely on. Treat them as in progress.
+- **No hosting** — it runs locally.
+- **No login rate limiting**, which blocks any public deployment.
+- **No CI**, no metrics, no error tracking.
+- **No test-prep question generation** — the Academics tab says so rather than faking it.
+- **`completed_at` is not settable through the API**, so "I finished this on Monday" cannot yet be recorded.
+
+## Running it
+
+Single user, single machine, by design. Prerequisites: Docker Desktop, Python 3.12+, Node 20+.
 
 ```bash
-./enola.sh               # Git Bash / WSL
-enola.cmd                # PowerShell, cmd, or double-click from Explorer
-enola                    # any shell, once the venv is activated
+cp .env.example .env
+python -m venv .venv && .venv/Scripts/pip install -e ".[dev]"
+python -m enola.core.auth hash "your password"      # paste the hash into .env
+python -m enola.scripts.seed --reset                # sample data; --wipe for an empty start
 ```
 
-That is `python -m enola.scripts.dev`: it starts the database, waits for it, applies
-migrations, then runs the API, the worker and the web dev server in one terminal with
-prefixed output, and opens the browser. Ctrl+C stops all of them.
-
-Flags: `--no-web`, `--no-worker`, `--no-reload`, `--no-open`, `--no-db`.
-
-<details><summary>Running the pieces separately</summary>
+Then one command, every time:
 
 ```bash
-docker compose up -d                                              # Postgres + pgvector
-alembic upgrade head
-.venv/Scripts/python -m uvicorn enola.api.main:app --reload       # API on ENOLA_API_PORT
-.venv/Scripts/python -m enola.workers.scheduler                   # worker, separate process
-cd web && npm run dev                                             # web on 5173
+./enola.sh      # Git Bash / WSL     ·     enola.cmd on PowerShell or Explorer
 ```
 
-</details>
+That starts Postgres, waits for it, applies migrations, then runs the API, the worker and the web dev server in one terminal with prefixed output. Ctrl+C stops all three and sweeps their process trees.
 
-`ANTHROPIC_API_KEY` makes the agent think. Without it the app still runs: every screen
-works, the worker runs, and Held items can be approved or rejected, but new chat turns
-are refused with `agent_unavailable`. To see the approval flow without a key:
+`GOOGLE_API_KEY` makes the agent think. Without it every screen still works, the worker still runs, and Held items can still be approved — only new chat turns are refused. To see the approval flow with no key at all:
 
 ```bash
-python -m enola.scripts.demo_held          # drafts a recruiter follow-up and Holds it
+python -m enola.scripts.demo_held     # drafts a recruiter follow-up and Holds it
 ```
 
-Embeddings default to a deterministic local hash (`ENOLA_EMBEDDER=hash`); set it to
-`voyage` with `VOYAGE_API_KEY` for real semantic retrieval. The email-to-self channel
-needs the `ENOLA_SMTP_*` variables; until then those notifications wait in the outbox.
-
-## Check it
+<details><summary>Checks, and where things live</summary>
 
 ```bash
-.venv/Scripts/mypy enola                   # strict, must be clean
-.venv/Scripts/pytest tests                 # needs the compose database (enola_test)
-cd web && npm run typecheck && npm run build
+.venv/Scripts/mypy enola                           # strict, must be clean
+.venv/Scripts/pytest tests                         # needs the compose test database
+cd web && npm run typecheck && npm run lint && npm run build
 ```
-
-`tests/test_approval_gate.py` holds the four mandatory gate tests. They run the real
-LangGraph graph against the real Postgres checkpointer with a scripted model.
-
-## Where things are
 
 ```
 enola/
-  api/          FastAPI: main.py (app factory, error shape), deps.py, routers/, crud.py (the one router pattern)
-  core/         config (env only), db, enums (shared with web), models/, schemas/, services/, repository.py, storage.py
-  agent/        registry.py (risk classification = the gate), graph.py (LangGraph + interrupt), service.py, tools/, memory/, prompts/
-  workers/      scheduler.py (APScheduler), jobs/ (reminders, follow-up nudges, daily brief), outbox.py (channels)
-  ingest/       embeddings.py, documents.py (chunk + embed)
-  scripts/      seed, demo_held, export_openapi, export_enums
+  api/       FastAPI: main.py, routers/, crud.py (one generic CRUD router)
+  core/      config, db, enums (shared with web), models/, schemas/, services/,
+             repository.py, storage.py, mailer.py, auth.py
+  agent/     registry.py (the gate), graph.py (LangGraph + interrupt), service.py,
+             models.py (provider + roles), tools/, memory/, prompts/
+  workers/   scheduler.py, jobs/ (reminders, nudges, brief, discovery), outbox.py
+  ingest/    documents.py, embeddings.py, mail.py, jobs_sources/
+  scripts/   dev, seed, demo_held, cache_check, export_openapi, export_enums
 web/src/
-  theme/        tokens.css (every colour, space, radius), base.css
-  ui/           primitives: Button, Card, Field, Table, Sheet, Badge, EmptyState, …
-  shell/        nav, header, chat rail, ⌘K palette, splash, phone tabs
-  data/         the one server-state layer (TanStack Query over the generated client)
-  screens/      one screen per file; scaffold/ holds the two still-mock screens (Academics, Email)
-  lib/          api.ts (openapi-fetch), api-types.generated.ts, enums.generated.ts
-alembic/        migrations; never edit one after it has been applied
-tests/          gate tests, router smoke tests, scheduling and memory tests
+  theme/     tokens.css — every colour, space and radius
+  ui/        primitives: Button, Card, Field, Table, Sheet, Badge, EmptyState…
+  shell/     nav, header, chat rail, ⌘K palette, splash, phone tabs
+  data/      one server-state layer (TanStack Query over the generated client)
+  screens/   one screen per file
+alembic/     migrations; never edited after being applied
 ```
 
-Regenerate the web types after changing any Pydantic schema:
+After changing any Pydantic schema, regenerate the web types:
 
 ```bash
-python -m enola.scripts.export_openapi web/openapi.json && (cd web && npm run gen:api)
-python -m enola.scripts.export_enums web/src/lib/enums.generated.ts
+python -m enola.scripts.export_openapi && (cd web && npm run gen:api)
+python -m enola.scripts.export_enums
 ```
 
-## The gate, in one paragraph
-
-Tools register through `@tool(risk=Risk.X)` in `enola/agent/registry.py`. The graph's
-`gate` node looks the tool up **before** executing it. `SAFE` and `WRITE_LOCAL` run
-(the latter is logged to `activity_log`). `EXTERNAL`, `DESTRUCTIVE`, and anything
-registered without a risk (`UNCLASSIFIED`) write an `approval_request` row with
-`state='held'` and call LangGraph's `interrupt()`. The run resumes from its Postgres
-checkpoint when you approve (optionally with edited arguments) and ends when you reject.
-The word for that paused state is **Held**, everywhere.
-
-## Iteration 1 (2026-09-17)
-
-Built from `FABLE_PROMPT_ITERATION_1.md` after first real use.
-
-- **Cost.** Two model roles, `ENOLA_AGENT_MODEL` for the chat loop and `ENOLA_UTILITY_MODEL`
-  for summaries and classification, both falling back to `ENOLA_DEFAULT_MODEL`
-  (`claude-haiku-4-5`). Every call is logged to `activity_log` as `model_call` with the
-  model id and token usage. The system prompt is a stable manual block marked for prompt
-  caching plus a small volatile block; `python -m enola.scripts.cache_check` shows the
-  cache-read tokens on a second turn.
-- **Corrections.** Splash holds for `VITE_SPLASH_MIN_MS`; the old follow-up nudge is split
-  into `thread_quiet` (a reminder) and `contact_cold` (never a reminder); tasks complete
-  with two taps plus an undo toast; short Web Audio cues with a mute in Settings;
-  `ENOLA_AUTOLOGIN=true` skips the password for loopback and private-LAN callers only;
-  `$` in `.env` values is written as `$$`.
-- **Colour and density.** Ochre means Held and nothing else. Each screen has its own accent.
-  Urgency is one shared component: overdue (red dot and edge), today, this week, later.
-  The chat rail cycles closed → rail → full screen; Esc returns to the rail.
-- **Finance.** Real screen with five entry paths (expense, income, transfer, split, settle
-  up), a ledger, category spend, and who-owes-whom. Settlements are rows in `settlement`
-  with allocations to split shares; balances are always derived, never stored. The agent
-  has `log_expense`, `log_income`, `log_transfer`, `split_expense`, `record_settlement`
-  (all local writes) and `finance_summary`, `who_owes_me` (reads).
-- **Projects and Self-learning** are wired to `/api/projects` and `/api/learning-goals`.
-- **Voice.** Hold the mic in chat to talk; the transcript lands in the input and never
-  sends by itself. Replies can be read aloud (`speechSynthesis`; auto-speak is off by
-  default, voice and rate in Settings; any new input or the stop control cuts playback).
-  The server composes the spoken text, so a Held reply always starts with the approval
-  notice. `tests/test_voice.py` asserts a voice-initiated external action is Held.
+</details>

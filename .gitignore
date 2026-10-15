@@ -15,3 +15,10 @@ enola.egg-info/
 diagrams/
 skills-lock.json
 linkedin/
+
+# Personal study guide, not for the public repo
+Enola-Explained.pdf
+
+# Working notes and the design prototype, not part of the project
+notes/
+design/
