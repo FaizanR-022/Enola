@@ -77,7 +77,30 @@ The worker never shares in-process state with the API — they communicate only 
 
 TypeScript types and enums are **generated** from the OpenAPI schema, so a Pydantic change surfaces as a compile error rather than a runtime surprise.
 
-Roughly 9,300 lines of Python and 6,900 of TypeScript, 30 tables, 22 tools, 71 tests.
+### Where things live
+
+```
+enola/
+  api/       FastAPI: main.py, routers/, crud.py (one generic CRUD router)
+  core/      config, db, enums (shared with web), models/, schemas/, services/,
+             repository.py, storage.py, mailer.py, auth.py
+  agent/     registry.py (the gate), graph.py (LangGraph + interrupt),
+             checkpoint.py, service.py, models.py (provider + roles),
+             speech.py, tools/, memory/, prompts/
+  workers/   scheduler.py, jobs/ (reminders, nudges, brief), outbox.py
+  ingest/    documents.py, embeddings.py, mail.py
+  scripts/   dev, seed, demo_held, export_openapi, export_enums
+web/src/
+  theme/     tokens.css — every colour, space and radius
+  ui/        primitives: Button, Card, Field, Table, Sheet, Badge, EmptyState…
+  shell/     nav, header, chat rail, ⌘K palette, splash, phone tabs
+  data/      one server-state layer (TanStack Query over the generated client)
+  screens/   one screen per file
+  lib/       formatting, platform detection, small shared helpers
+tests/       the four mandatory gate tests, plus scoring, dedupe and scheduling
+alembic/     migrations; never edited after being applied
+docker/      Postgres init scripts (compose file is at the root)
+```
 
 ## Worth reading, if you only read two files
 
@@ -126,31 +149,12 @@ That starts Postgres, waits for it, applies migrations, then runs the API, the w
 python -m enola.scripts.demo_held     # drafts a recruiter follow-up and Holds it
 ```
 
-<details><summary>Checks, and where things live</summary>
+<details><summary>Checks</summary>
 
 ```bash
 .venv/Scripts/mypy enola                           # strict, must be clean
 .venv/Scripts/pytest tests                         # needs the compose test database
 cd web && npm run typecheck && npm run lint && npm run build
-```
-
-```
-enola/
-  api/       FastAPI: main.py, routers/, crud.py (one generic CRUD router)
-  core/      config, db, enums (shared with web), models/, schemas/, services/,
-             repository.py, storage.py, mailer.py, auth.py
-  agent/     registry.py (the gate), graph.py (LangGraph + interrupt), service.py,
-             models.py (provider + roles), tools/, memory/, prompts/
-  workers/   scheduler.py, jobs/ (reminders, nudges, brief, discovery), outbox.py
-  ingest/    documents.py, embeddings.py, mail.py, jobs_sources/
-  scripts/   dev, seed, demo_held, cache_check, export_openapi, export_enums
-web/src/
-  theme/     tokens.css — every colour, space and radius
-  ui/        primitives: Button, Card, Field, Table, Sheet, Badge, EmptyState…
-  shell/     nav, header, chat rail, ⌘K palette, splash, phone tabs
-  data/      one server-state layer (TanStack Query over the generated client)
-  screens/   one screen per file
-alembic/     migrations; never edited after being applied
 ```
 
 After changing any Pydantic schema, regenerate the web types:
